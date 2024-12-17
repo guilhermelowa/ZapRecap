@@ -1,25 +1,66 @@
-# Node.js dependencies
-node_modules/
+# Frontend (Node.js, JS, TS) ignores
+client/logs
+client/*.log
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+client/pnpm-debug.log*
+client/lerna-debug.log*
 
-# Environment variables
-.env
-.env.local
+client/node_modules
+client/dist
+client/dist-ssr
+client/*.local
 
-# Build output
-dist/
-build/
+# Editor directories and files
+client/.vscode/*
+!client/.vscode/extensions.json
+client/.idea
+client/.DS_Store
+client/*.suo
+client/*.ntvs*
 
-# IDE specific files
-.vscode/
-.idea/
-*.swp
-*.swo
+# Backend (Python, FastAPI) ignores
+fastapi-backend/__pycache__/
+fastapi-backend/*.py[cod]
+fastapi-backend/*$py.class
+fastapi-backend/*.so
+fastapi-backend/.Python
+fastapi-backend/venv/
+fastapi-backend/ENV/
+fastapi-backend/env/
+fastapi-backend/.env
+fastapi-backend/*.egg
+fastapi-backend/*.egg-info/
+fastapi-backend/dist/
+fastapi-backend/build/
+fastapi-backend/eggs/
+fastapi-backend/parts/
+fastapi-backend/bin/
+fastapi-backend/var/
+fastapi-backend/sdist/
 
-# Debug logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS generated files
-.DS_Store
-Thumbs.db
+# FastAPI specific
+fastapi-backend/*.db
+fastapi-backend/*.sqlite3
+fastapi-backend/*.pyo
+fastapi-backend/*.pyd
+fastapi-backend/*.pdb
+fastapi-backend/*.log
+fastapi-backend/*.pid
+fastapi-backend/*.gz
+fastapi-backend/*.zip
+fastapi-backend/*.tar
+fastapi-backend/*.tar.gz
+fastapi-backend/*.rar
+fastapi-backend/*.7z
+fastapi-backend/*.bak
+fastapi-backend/*.swp
+fastapi-backend/*.swo
+fastapi-backend/*.tmp
+fastapi-backend/*.temp
+fastapi-backend/*.old
+fastapi-backend/*.orig
+fastapi-backend/*.rej
+fastapi-backend/*.patch
+fastapi-backend/*.diff

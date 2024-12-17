@@ -23,6 +23,9 @@ client/*.ntvs*
 # Backend (Python, FastAPI) ignores
 fastapi-backend/__pycache__/
 fastapi-backend/*.py[cod]
+fastapi-backend/*.pyc
+fastapi-backend/*.pyo
+fastapi-backend/*.pyd
 fastapi-backend/*$py.class
 fastapi-backend/*.so
 fastapi-backend/.Python

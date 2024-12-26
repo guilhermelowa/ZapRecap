@@ -1,13 +1,19 @@
 import { FC, ChangeEvent, DragEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 const FileUpload: FC = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false)
-  const [file, setFile] = useState<File | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string>('')
   const navigate = useNavigate()
 
-  const validateFile = (file: File): boolean => {
+  const validateFile = (file: File | undefined): file is File => {
+    if (!file) {
+      setError('Please upload a valid file')
+      return false
+    }
     if (!file.name.endsWith('.txt')) {
       setError('Please upload a .txt file')
       return false
@@ -15,25 +21,58 @@ const FileUpload: FC = () => {
     return true
   }
 
-  const handleFile = (file: File) => {
-    if (validateFile(file)) {
-      setFile(file)
-      setError('')
-      // TODO: Call API and navigate to results
-    }
-  }
-
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
     
     const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile) handleFile(droppedFile)
+    if (validateFile(droppedFile)) {
+      setSelectedFile(droppedFile);
+      setError('');
+    }
   }
 
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) handleFile(selectedFile)
+    const file = e.target.files?.[0]
+    if (validateFile(file)) {
+      setSelectedFile(file);
+      setError('');
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!selectedFile) {
+      setError('Please upload a valid file');
+      return;
+    }
+    setIsLoading(true);
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      const content = e.target?.result as string;
+      
+      try {
+        const response = await axios.post('http://localhost:8000/analyze', {
+          content: content
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(response.data);
+        navigate('/results', { 
+          state: {
+             result: response.data.result
+          } 
+        })
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    reader.readAsText(selectedFile);
   }
 
   return (
@@ -56,10 +95,17 @@ const FileUpload: FC = () => {
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
           </svg>
           <p>Drop your WhatsApp chat file here or click to browse</p>
-          {file && <p className="file-name">Selected: {file.name}</p>}
+          {selectedFile && <p className="file-name">Selected: {selectedFile.name}</p>}
           {error && <p className="error-message">{error}</p>}
         </div>
       </label>
+      <button 
+        onClick={handleSubmit}
+        disabled={!selectedFile || isLoading}
+      >
+        {isLoading ? 'Processing...' : 'Analyze File'}
+      </button>
+      {isLoading && <div>Loading...</div>}
     </div>
   )
 }

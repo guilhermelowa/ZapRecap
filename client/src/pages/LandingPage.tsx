@@ -1,12 +1,11 @@
 import { FC } from 'react'
 import FileUpload from '../components/FileUpload.tsx'
+import Header from '../components/Header.tsx'
 
 const LandingPage: FC = () => {
   return (
     <div className="landing-container">
-      <header className="whatsapp-header">
-        <h1>WhatsApp Chat Analyzer</h1>
-      </header>
+      <Header />
       <FileUpload />
     </div>
   )

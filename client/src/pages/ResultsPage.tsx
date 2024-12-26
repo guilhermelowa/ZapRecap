@@ -1,16 +1,28 @@
-import { FC } from 'react'
-import { useLocation } from 'react-router-dom'
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+import WordCloudComponent from '../components/WordCloud';
+import Header from '../components/Header';
 
-const ResultsPage: FC = () => {
-  const location = useLocation()
-  const analysis = location.state?.analysis
+const ResultsPage = () => {
+  const location = useLocation();
+  console.log('Location state:', location.state);
+  
+  if (!location.state) {
+    return <div>No data available</div>;
+  }
+
+  const { result } = location.state;
+  console.log('Result data:', result);  // Debug result
 
   return (
-    <div className="results-container">
+    <div>
+      <Header />
       <h1>Analysis Results</h1>
-      {/* Results will go here */}
+      <pre>{JSON.stringify(result, null, 2)}</pre>
+      <h2>Word Cloud</h2>
+      <WordCloudComponent words={result.word_cloud_data} />
     </div>
-  )
-}
+  );
+};
 
-export default ResultsPage
+export default ResultsPage;

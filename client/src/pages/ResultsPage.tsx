@@ -1,7 +1,6 @@
-import React from 'react';
 import { useLocation } from 'react-router-dom';
-import WordCloudComponent from '../components/WordCloud';
 import Header from '../components/Header';
+import Charts from '../components/Charts';
 
 const ResultsPage = () => {
   const location = useLocation();
@@ -12,17 +11,18 @@ const ResultsPage = () => {
   }
 
   const { result } = location.state;
-  console.log('Result data:', result);  // Debug result
-
-  return (
-    <div>
-      <Header />
-      <h1>Analysis Results</h1>
-      <pre>{JSON.stringify(result, null, 2)}</pre>
-      <h2>Word Cloud</h2>
-      <WordCloudComponent words={result.word_cloud_data} />
-    </div>
-  );
+  try {
+    return (
+      <div>
+        <Header />
+        <h1>Analysis Results</h1>
+        <Charts data={result} />
+      </div>
+    );
+  } catch (error) {
+    console.error('Render error:', error);
+    return <div>Error rendering results. Check console for details.</div>;
+  }
 };
 
 export default ResultsPage;

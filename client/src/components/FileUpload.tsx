@@ -60,10 +60,9 @@ const FileUpload: FC = () => {
           }
         });
         
-        console.log(response.data);
         navigate('/results', { 
           state: {
-             result: response.data.result
+             result: response.data
           } 
         })
       } catch (error) {

@@ -8,6 +8,7 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 import pandas as pd
 import re
+from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, CommonWord
 from app.services.parsing_utils import parse_whatsapp_chat
 
 # Download required NLTK data
@@ -109,12 +110,12 @@ def calculate_conversation_length_stats(dates, time_threshold=30*60):
     # Calculate average
     avg_length = sum(conversation_messages) / len(conversation_messages)
 
-    return {
-        'average_length': round(avg_length, 2),
-        'longest_conversation_length': len(max_conversation),
-        'longest_conversation_start': max_conversation[0],
-        'longest_conversation_end': max_conversation[-1]
-    }
+    return ConversationStats(
+        average_length=round(avg_length, 2),
+        longest_conversation_length=len(max_conversation),
+        longest_conversation_start=max_conversation[0],
+        longest_conversation_end=max_conversation[-1]
+    )
 
 # Function to clean and tokenize text
 def process_text(text):
@@ -143,8 +144,7 @@ def get_most_common_words(author_and_messages, top_n=20):
 
     # Get the most common words
     most_common = word_counts.most_common(top_n)
-
-    return most_common
+    return [CommonWord(word=word, count=count) for word, count in most_common]
 
 def get_word_metrics(author_and_messages):
     """
@@ -180,26 +180,26 @@ def get_word_metrics(author_and_messages):
     sorted_messages = dict(sorted(messages_per_author.items(), key=lambda x: x[1], reverse=True))
     sorted_curse_words = dict(sorted(curse_words_count.items(), key=lambda x: x[1], reverse=True))
 
-    return {
-        'messages_per_author': sorted_messages,
-        'average_message_length': message_lengths,
-        'curse_words_per_author': sorted_curse_words,
-        'curse_words_by_author': dict(curse_words_by_author),
-        'curse_words_frequency': dict(curse_words_frequency.most_common())
-    }
+    return WordMetrics(
+        messages_per_author=sorted_messages,
+        average_message_length=message_lengths,
+        curse_words_per_author=sorted_curse_words,
+        curse_words_by_author=dict(curse_words_by_author),
+        curse_words_frequency=dict(curse_words_frequency.most_common())
+    )
 
 def calculate_all_metrics(chat_content):
     # Parse the chat content
     dates, author_messages = parse_whatsapp_chat(chat_content)
 
     # Calculate all metrics
-    heatmap_data = create_messages_heatmap(dates)
+    # heatmap_data = create_messages_heatmap(dates)
     conversation_stats = calculate_conversation_length_stats(dates)
     word_metrics = get_word_metrics(author_messages)
     common_words = get_most_common_words(author_messages)
 
-    return {
-        'conversation_stats': conversation_stats,
-        'word_metrics': word_metrics,
-        'common_words': [{'word': word, 'count': count} for word, count in common_words]
-    }
+    return AnalysisResponse(
+        conversation_stats=conversation_stats,
+        word_metrics=word_metrics,
+        common_words=common_words
+    )

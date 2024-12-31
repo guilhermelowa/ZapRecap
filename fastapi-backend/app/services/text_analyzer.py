@@ -1,5 +1,6 @@
 import calendar
 from collections import Counter, defaultdict
+from typing import Dict, List
 from datetime import datetime
 import matplotlib.pyplot as plt
 import nltk
@@ -8,7 +9,7 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 import pandas as pd
 import re
-from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, CommonWord
+from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, CommonWord, HeatmapData
 from app.services.parsing_utils import parse_whatsapp_chat
 
 # Download required NLTK data
@@ -24,62 +25,44 @@ custom_stop_words = {'pra', 'tá', 'q', 'tb', 'né', 'tô', 'ta', 'to', 'mídia'
 stop_words.update(custom_stop_words)
 curse_words = {'porra', 'caralho', 'merda', 'foda', 'fodase', 'foda-se', 'puta', 'putas', 'putinha', 'putinhas', 'putao'}
 
-def create_messages_heatmap(dates):
-    # Create DataFrame from dates list
-    df = pd.DataFrame({'datetime': dates})
+def create_messages_heatmap(dates) -> HeatmapData:
+    # Initialize 7x53 matrix
+    matrix = [[0] * 53 for _ in range(7)]
+    dates_matrix = [[''] * 53 for _ in range(7)]
+    
+    # Count messages
+    for date in dates:
+        weekday = date.weekday()
+        week = date.isocalendar()[1] - 1  # 0-52
+        matrix[weekday][week] += 1
+        dates_matrix[weekday][week] = date.strftime('%d/%m/%Y')
+    
+    # Initialize vmin and vmax
+    vmin = 0
+    vmax = 0
+    
+    # Normalize values
+    all_values = [v for row in matrix for v in row if v > 0]
+    vmin = float(np.percentile(all_values, 5))
+    vmax = float(np.percentile(all_values, 95))
 
-    # Add necessary columns for heatmap
-    df['weekday'] = df['datetime'].dt.dayofweek
-    df['month_year'] = df['datetime'].dt.strftime('%m/%Y')
-    df['week'] = df['datetime'].dt.isocalendar().week
-
-    # Create pivot table for heatmap
-    pivot = pd.pivot_table(
-        df,
-        values='datetime',
-        index='weekday',
-        columns=['month_year', 'week'],
-        aggfunc='count',
-        fill_value=0
+    # if all_values:
+        
+    #     scale = vmax - vmin if vmax != vmin else 1
+        
+    #     for i in range(7):
+    #         for j in range(53):
+    #             if matrix[i][j] > 0:
+    #                 matrix[i][j] = min(100, max(0, ((matrix[i][j] - vmin) / scale) * 100))
+    
+    return HeatmapData(
+        z=matrix,
+        x=[f'W{i+1}' for i in range(53)],
+        y=['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        dates=dates_matrix,
+        zmin=vmin,
+        zmax=vmax
     )
-
-    # Flatten multi-index columns
-    pivot.columns = [f"{m}_{w}" for m, w in pivot.columns]
-
-    # Normalize data using percentile-based scaling
-    vmax = np.percentile(pivot.values[pivot.values > 0], 95)  # 95th percentile
-    vmin = np.percentile(pivot.values[pivot.values > 0], 5)   # 5th percentile
-
-    # Create heatmap with green colormap
-    plt.figure(figsize=(20, 5))
-    ax = plt.gca()
-    plt.imshow(pivot, cmap='Greens', aspect='auto', vmin=vmin, vmax=vmax)
-    plt.colorbar(label='Message Count')
-
-    # Add labels
-    plt.yticks(range(7), calendar.day_name)
-
-    # Create x-axis labels (show month only at transitions)
-    month_labels = []
-    prev_month = None
-    for col in pivot.columns:
-        month = col.split('_')[0]
-        if month != prev_month:
-            month_labels.append(month)
-            prev_month = month
-        else:
-            month_labels.append('')
-
-    plt.xticks(range(len(pivot.columns)), month_labels, rotation=45)
-    plt.xlabel('Month/Year')
-    plt.ylabel('Day of Week')
-
-    # Remove grid and border
-    ax.grid(False)
-    ax.set_frame_on(False)
-
-    plt.tight_layout()
-    plt.show()
 
 def calculate_conversation_length_stats(dates, time_threshold=30*60):
     # Initialize variables
@@ -193,12 +176,13 @@ def calculate_all_metrics(chat_content):
     dates, author_messages = parse_whatsapp_chat(chat_content)
 
     # Calculate all metrics
-    # heatmap_data = create_messages_heatmap(dates)
+    heatmap_data = create_messages_heatmap(dates)
     conversation_stats = calculate_conversation_length_stats(dates)
     word_metrics = get_word_metrics(author_messages)
     common_words = get_most_common_words(author_messages)
 
     return AnalysisResponse(
+        heatmap_data=heatmap_data,
         conversation_stats=conversation_stats,
         word_metrics=word_metrics,
         common_words=common_words

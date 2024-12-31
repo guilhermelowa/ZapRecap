@@ -1,6 +1,8 @@
 import { useLocation } from 'react-router-dom';
+import { AnalysisResponse } from '../types/apiTypes';
 import Header from '../components/Header';
-import Charts from '../components/Charts';
+// import Charts from '../components/Charts';
+import PlotlyHeatmap from '../components/PlotlyHeatmap';
 
 const ResultsPage = () => {
   const location = useLocation();
@@ -10,18 +12,20 @@ const ResultsPage = () => {
     return <div>No data available</div>;
   }
 
-  const { result } = location.state;
+  const { result } = location.state as { result: AnalysisResponse };
+  
   try {
     return (
       <div>
         <Header />
         <h1>Analysis Results</h1>
-        <Charts data={result} />
+        <PlotlyHeatmap heatmapData={result.heatmap_data} />
+        {/* <Charts data={result} /> */}
       </div>
     );
   } catch (error) {
-    console.error('Render error:', error);
-    return <div>Error rendering results. Check console for details.</div>;
+    console.error('Error rendering results:', error);
+    return <div>Error displaying results</div>;
   }
 };
 

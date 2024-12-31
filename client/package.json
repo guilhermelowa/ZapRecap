@@ -10,17 +10,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/react-plotly.js": "^2.6.3",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.1.0",
+    "plotly.js-dist": "^2.24.2",
+    "plotly.js-dist-min": "^2.35.3",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
+    "react-plotly.js": "^2.6.0",
     "react-router-dom": "^7.0.2",
     "wordcloud": "^1.2.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@types/chart.js": "^2.9.41",
+    "@types/plotly.js": "^2.35.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/wordcloud": "^1.2.2",

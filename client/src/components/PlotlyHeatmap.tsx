@@ -45,11 +45,12 @@ const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
     const layout: Partial<Layout> = {
         title: {
             text: 'Message Activity Heatmap',
-            font: { color: '#ffffff' }
+        },
+        font: {
+            color: '#ffffff'
         },
         xaxis: {
             showgrid: false,
-            tickfont: { color: '#ffffff' },
             rangemode: 'nonnegative' as const,
             // Find first week with data
             range: [
@@ -65,7 +66,6 @@ const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
         },
         yaxis: {
             showgrid: false,
-            tickfont: { color: '#ffffff' },
             scaleanchor: 'x',  
             scaleratio: 1,
             autorange: 'reversed'
@@ -78,7 +78,8 @@ const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
             b: 50,
             t: 50,
             pad: 4
-        }
+        },
+        
     };
 
     return (

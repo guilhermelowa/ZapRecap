@@ -1,4 +1,6 @@
-from datetime import datetime
+from bisect import bisect_left
+from datetime import datetime, timedelta
+from app.models.data_formats import Conversation, Message
 import re
 
 def is_new_message(line):
@@ -29,21 +31,36 @@ def store_message(messages, date, author, content):
     except TypeError:
         pass
 
+def get_last_years_dates(dates, days=365):
+    today = datetime.now()
+    cutoff = today - timedelta(days=days)
+    result = bisect_left(dates, cutoff)
+    return dates[result:]
+
 def parse_whatsapp_chat(chat_text):
     dates = []
     author_and_messages = {}
+    conversation = []
     current_author = None
     current_message = None
+
+    now = datetime.now()
+    oldest_date = now - timedelta(days=365).date()
+    date = now - timedelta(days=365*2).date()
 
     lines = chat_text.split('\n')
     lines = [line.strip().lower() for line in lines if line.strip()]
     
     if len(lines) < 2:  # Check if there are at least 2 lines
         return [], {}
+    
+    while date < oldest_date:
+        lines = lines[1:] # skip line. always skip first line (default WhatsApp msg)
+        date, message = parse_line(lines[1])
 
-    date, message = parse_line(lines[1])  # Skip first line and process second
     dates.append(date)
     current_author, current_message = parse_message(message)
+    conversation.append(Message(date=date, author=current_author, content=current_message))
 
     for line in lines[2:]:  # Process remaining lines
         if is_new_message(line):
@@ -54,6 +71,7 @@ def parse_whatsapp_chat(chat_text):
         else:
             current_message += ' ' + line
             
+    dates = get_last_years_dates(dates)
     store_message(author_and_messages, date, current_author, current_message)
     
-    return dates, author_and_messages
+    return dates, author_and_messages, conversation

@@ -1,3 +1,4 @@
+import random
 import calendar
 from collections import Counter, defaultdict
 from typing import Dict, List
@@ -9,7 +10,7 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 import pandas as pd
 import re
-from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, CommonWord, HeatmapData
+from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, HeatmapData, PeriodStats, ConversationSample, Conversation
 from app.services.parsing_utils import parse_whatsapp_chat
 
 # Download required NLTK data
@@ -29,7 +30,7 @@ def create_messages_heatmap(dates) -> HeatmapData:
     # Initialize 7x53 matrix
     matrix = [[0] * 53 for _ in range(7)]
     dates_matrix = [[''] * 53 for _ in range(7)]
-    
+
     # Count messages
     for date in dates:
         weekday = date.weekday()
@@ -45,15 +46,6 @@ def create_messages_heatmap(dates) -> HeatmapData:
     all_values = [v for row in matrix for v in row if v > 0]
     vmin = float(np.percentile(all_values, 5))
     vmax = float(np.percentile(all_values, 95))
-
-    # if all_values:
-        
-    #     scale = vmax - vmin if vmax != vmin else 1
-        
-    #     for i in range(7):
-    #         for j in range(53):
-    #             if matrix[i][j] > 0:
-    #                 matrix[i][j] = min(100, max(0, ((matrix[i][j] - vmin) / scale) * 100))
     
     return HeatmapData(
         z=matrix,
@@ -64,15 +56,24 @@ def create_messages_heatmap(dates) -> HeatmapData:
         zmax=vmax
     )
 
-def calculate_conversation_length_stats(dates, time_threshold=30*60):
+def calculate_conversation_stats(dates, conversation, time_threshold=30*60):
     # Initialize variables
     conversation_messages = []
     current_conversation = []
     max_conversation = []
 
+    # Calculate weekday, week, and month statistics
+    # Initialize counters
+    weekday_counts = {i: 0 for i in range(7)}  # 0-6: Mon-Sun
+    week_counts = {i: 0 for i in range(53)}    # 0-52 weeks
+    month_counts = {i: 0 for i in range(1, 13)} # 1-12 months
+
     # Group messages into conversations
     for i in range(len(dates)-1):
         current_conversation.append(dates[i])
+        weekday_counts[dates[i].weekday()] += 1
+        week_counts[dates[i].isocalendar()[1] - 1] += 1
+        month_counts[dates[i].month] += 1
         
         # Calculate time difference with next message
         time_diff = (dates[i+1] - dates[i]).total_seconds()
@@ -93,11 +94,45 @@ def calculate_conversation_length_stats(dates, time_threshold=30*60):
     # Calculate average
     avg_length = sum(conversation_messages) / len(conversation_messages)
 
+    # Find most/least active periods with counts
+    weekday_most = max(weekday_counts.items(), key=lambda x: x[1])
+    weekday_least = min(weekday_counts.items(), key=lambda x: x[1])
+    
+    week_most = max(week_counts.items(), key=lambda x: x[1])
+    week_least = min(week_counts.items(), key=lambda x: x[1])
+    
+    month_most = max(month_counts.items(), key=lambda x: x[1])
+    month_least = min(month_counts.items(), key=lambda x: x[1])
+
+    # Sample 5 random parts of longest conversation
+    samples = []
+    if len(max_conversation) >= 50:
+        # Get all possible starting indices (leaving room for 10 messages)
+        possible_indices = list(range(len(max_conversation) - 10))
+        # Randomly select 5 starting points
+        sample_starts = random.sample(possible_indices, 5)
+        for start_idx in sorted(sample_starts):
+            samples.append(ConversationSample(
+                start_date=dates[start_idx],
+                messages=max_conversation[start_idx:start_idx + 10]
+            ))
+    else:
+        samples.append(ConversationSample(
+            start_date=max_conversation[0],
+            messages=max_conversation
+        ))
+
     return ConversationStats(
         average_length=round(avg_length, 2),
         longest_conversation_length=len(max_conversation),
         longest_conversation_start=max_conversation[0],
-        longest_conversation_end=max_conversation[-1]
+        longest_conversation_end=max_conversation[-1],
+        most_active_weekday=PeriodStats(period=weekday_most[0], count=weekday_most[1]),
+        least_active_weekday=PeriodStats(period=weekday_least[0], count=weekday_least[1]),
+        most_active_week=PeriodStats(period=week_most[0], count=week_most[1]),
+        least_active_week=PeriodStats(period=week_least[0], count=week_least[1]),
+        most_active_month=PeriodStats(period=month_most[0], count=month_most[1]),
+        least_active_month=PeriodStats(period=month_least[0], count=month_least[1])
     )
 
 # Function to clean and tokenize text
@@ -127,7 +162,7 @@ def get_most_common_words(author_and_messages, top_n=20):
 
     # Get the most common words
     most_common = word_counts.most_common(top_n)
-    return [CommonWord(word=word, count=count) for word, count in most_common]
+    return {word: count for word, count in most_common}
 
 def get_word_metrics(author_and_messages):
     """
@@ -160,6 +195,7 @@ def get_word_metrics(author_and_messages):
                         curse_words_frequency[word] += count
 
     # Sort results
+    message_lengths = dict(sorted(message_lengths.items(), key=lambda x: x[1], reverse=True))
     sorted_messages = dict(sorted(messages_per_author.items(), key=lambda x: x[1], reverse=True))
     sorted_curse_words = dict(sorted(curse_words_count.items(), key=lambda x: x[1], reverse=True))
 
@@ -173,11 +209,11 @@ def get_word_metrics(author_and_messages):
 
 def calculate_all_metrics(chat_content):
     # Parse the chat content
-    dates, author_messages = parse_whatsapp_chat(chat_content)
+    dates, author_messages, conversation = parse_whatsapp_chat(chat_content)
 
     # Calculate all metrics
     heatmap_data = create_messages_heatmap(dates)
-    conversation_stats = calculate_conversation_length_stats(dates)
+    conversation_stats = calculate_conversation_stats(dates, conversation)
     word_metrics = get_word_metrics(author_messages)
     common_words = get_most_common_words(author_messages)
 

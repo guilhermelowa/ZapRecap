@@ -1,8 +1,27 @@
+export interface PeriodStats {
+  period: number;
+  count: number;
+}
+
+export interface ConversationSample {
+  start_date: Date;
+  messages: string[];
+}
+
 export interface ConversationStats {
+  total_messages: number;
+  participant_count: number;
   average_length: number;
   longest_conversation_length: number;
   longest_conversation_start: Date;
   longest_conversation_end: Date;
+  conversation_samples: ConversationSample[];
+  most_active_weekday: PeriodStats;
+  least_active_weekday: PeriodStats;
+  most_active_week: PeriodStats;
+  least_active_week: PeriodStats;
+  most_active_month: PeriodStats;
+  least_active_month: PeriodStats;
 }
 
 export interface WordMetrics {
@@ -30,12 +49,6 @@ export interface CommonWord {
   count: number;
 }
 
-// export interface HeatmapPoint {
-//   x: number;  // week number (0-52)
-//   y: number;  // weekday (0-6)
-//   v: number;  // normalized value (0-100)
-// }
-
 export interface HeatmapData {
   z: number[][];         // 7x53 matrix
   x: string[];          // week labels
@@ -49,5 +62,7 @@ export interface AnalysisResponse {
   heatmap_data: HeatmapData;
   conversation_stats: ConversationStats;
   word_metrics: WordMetrics;
-  common_words: CommonWord[];
+  common_words: {
+    [word: string]: number;
+  }
 }

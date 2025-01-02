@@ -2,13 +2,36 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Dict, List
 
+class Message(BaseModel):
+    date: datetime
+    author: str
+    content: str
 
-# class HeatmapPoint(BaseModel):
-#     x: int  # week number (0-52)
-#     y: int  # weekday (0-6)
-#     v: float  # normalized value (0-100)
-#     vmin: int
-#     vmax: int
+class Conversation(BaseModel):
+    messages: List[Message]
+
+class PeriodStats(BaseModel):
+    period: int # weekday, week number or month number
+    count: int
+
+class ConversationSample(BaseModel):
+    start_date: datetime
+    messages: List[str]
+
+class ConversationStats(BaseModel):
+    total_messages: int
+    participant_count: int
+    average_length: float
+    longest_conversation_length: int
+    longest_conversation_start: datetime
+    longest_conversation_end: datetime
+    conversation_samples: List[ConversationSample]
+    most_active_weekday: PeriodStats
+    least_active_weekday: PeriodStats
+    most_active_week: PeriodStats
+    least_active_week: PeriodStats
+    most_active_month: PeriodStats
+    least_active_month: PeriodStats
 
 class HeatmapData(BaseModel):
     z: List[List[float]]          # message counts
@@ -18,12 +41,6 @@ class HeatmapData(BaseModel):
     zmin: float
     zmax: float
 
-class ConversationStats(BaseModel):
-    average_length: float
-    longest_conversation_length: int
-    longest_conversation_start: datetime
-    longest_conversation_end: datetime
-
 class WordMetrics(BaseModel):
     messages_per_author: Dict[str, int]
     average_message_length: Dict[str, float]
@@ -31,12 +48,8 @@ class WordMetrics(BaseModel):
     curse_words_by_author: Dict[str, Dict[str, int]]
     curse_words_frequency: Dict[str, int]
 
-class CommonWord(BaseModel):
-    word: str
-    count: int
-
 class AnalysisResponse(BaseModel):
     heatmap_data: HeatmapData
     conversation_stats: ConversationStats
     word_metrics: WordMetrics
-    common_words: List[CommonWord]
+    common_words: Dict[str, int]

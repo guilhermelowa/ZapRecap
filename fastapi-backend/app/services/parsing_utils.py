@@ -1,6 +1,6 @@
 from bisect import bisect_left
 from datetime import datetime, timedelta
-from app.models.data_formats import Conversation, Message
+from app.models.data_formats import Message
 import re
 
 def is_new_message(line):
@@ -20,7 +20,7 @@ def parse_message(message):
         author, content = message.split(': ', 1)
         return author, content
     except ValueError:
-        return None, None
+        return "None", "None"
 
 def store_message(messages, date, author, content):
     # Store message in messages dictionary
@@ -45,8 +45,8 @@ def parse_whatsapp_chat(chat_text):
     current_message = None
 
     now = datetime.now()
-    oldest_date = now - timedelta(days=365).date()
-    date = now - timedelta(days=365*2).date()
+    OLDEST_DATE = now - timedelta(days=365)
+    date = now - timedelta(days=365*2)
 
     lines = chat_text.split('\n')
     lines = [line.strip().lower() for line in lines if line.strip()]
@@ -54,7 +54,7 @@ def parse_whatsapp_chat(chat_text):
     if len(lines) < 2:  # Check if there are at least 2 lines
         return [], {}
     
-    while date < oldest_date:
+    while date < OLDEST_DATE:
         lines = lines[1:] # skip line. always skip first line (default WhatsApp msg)
         date, message = parse_line(lines[1])
 
@@ -65,13 +65,14 @@ def parse_whatsapp_chat(chat_text):
     for line in lines[2:]:  # Process remaining lines
         if is_new_message(line):
             store_message(author_and_messages, date, current_author, current_message)
+            conversation.append(Message(date=date, author=current_author, content=current_message))
             date, message = parse_line(line)
             dates.append(date)
             current_author, current_message = parse_message(message)
         else:
             current_message += ' ' + line
             
-    dates = get_last_years_dates(dates)
     store_message(author_and_messages, date, current_author, current_message)
+    conversation.append(Message(date=date, author=current_author, content=current_message))
     
     return dates, author_and_messages, conversation

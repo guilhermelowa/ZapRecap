@@ -73,6 +73,20 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                     {stats.least_active_week.count} messages. Vacation time? ✈️
                 </p>
             </section>
+
+            <section className="theme-patterns">
+                <h3>🎨 Theme Patterns</h3>
+                <p>
+                    According to ChatGPT, your most common themes are: 
+                    <span style={{ 
+                        backgroundColor: '#f5f5f5', 
+                        padding: '5px', 
+                        borderRadius: '5px', 
+                        marginRight: '5px'
+                    }}>{stats.themes}</span>
+                    {stats.themes.length > 1 ? " 🎉" : " 😊"}
+                </p>
+            </section>
         </div>
     );
 };

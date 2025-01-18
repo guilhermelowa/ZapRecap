@@ -1,16 +1,15 @@
-import random
-import calendar
 from collections import Counter, defaultdict
-from typing import Dict, List
+from typing import List
 from datetime import datetime
-import matplotlib.pyplot as plt
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import numpy as np
-import pandas as pd
 import re
-from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, HeatmapData, PeriodStats, ConversationSample, Conversation
+import os
+import openai
+from langdetect import detect
+from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, HeatmapData, PeriodStats, Message
 from app.services.parsing_utils import parse_whatsapp_chat
 
 # Download required NLTK data
@@ -56,43 +55,12 @@ def create_messages_heatmap(dates) -> HeatmapData:
         zmax=vmax
     )
 
-def calculate_conversation_stats(dates, conversation, time_threshold=30*60):
-    # Initialize variables
-    conversation_messages = []
-    current_conversation = []
-    max_conversation = []
-
+def calculate_conversation_stats(conversation, author_and_messages):
     # Calculate weekday, week, and month statistics
-    # Initialize counters
-    weekday_counts = {i: 0 for i in range(7)}  # 0-6: Mon-Sun
-    week_counts = {i: 0 for i in range(53)}    # 0-52 weeks
-    month_counts = {i: 0 for i in range(1, 13)} # 1-12 months
-
-    # Group messages into conversations
-    for i in range(len(dates)-1):
-        current_conversation.append(dates[i])
-        weekday_counts[dates[i].weekday()] += 1
-        week_counts[dates[i].isocalendar()[1] - 1] += 1
-        month_counts[dates[i].month] += 1
-        
-        # Calculate time difference with next message
-        time_diff = (dates[i+1] - dates[i]).total_seconds()
-        
-        # If gap is more than 30 minutes, end current conversation
-        if time_diff > time_threshold:
-            if len(current_conversation) > len(max_conversation):
-                max_conversation = current_conversation.copy()
-            conversation_messages.append(len(current_conversation))
-            current_conversation = []
-
-    # Handle last message
-    current_conversation.append(dates[-1])
-    conversation_messages.append(len(current_conversation))
-    if len(current_conversation) > len(max_conversation):
-        max_conversation = current_conversation
+    weekday_counts, week_counts, month_counts, max_conversation, conversation_lenghts = calculate_conversation_parts(conversation)
 
     # Calculate average
-    avg_length = sum(conversation_messages) / len(conversation_messages)
+    avg_length = sum(conversation_lenghts) / len(conversation_lenghts)
 
     # Find most/least active periods with counts
     weekday_most = max(weekday_counts.items(), key=lambda x: x[1])
@@ -104,36 +72,56 @@ def calculate_conversation_stats(dates, conversation, time_threshold=30*60):
     month_most = max(month_counts.items(), key=lambda x: x[1])
     month_least = min(month_counts.items(), key=lambda x: x[1])
 
-    # Sample 5 random parts of longest conversation
-    samples = []
-    if len(max_conversation) >= 50:
-        # Get all possible starting indices (leaving room for 10 messages)
-        possible_indices = list(range(len(max_conversation) - 10))
-        # Randomly select 5 starting points
-        sample_starts = random.sample(possible_indices, 5)
-        for start_idx in sorted(sample_starts):
-            samples.append(ConversationSample(
-                start_date=dates[start_idx],
-                messages=max_conversation[start_idx:start_idx + 10]
-            ))
-    else:
-        samples.append(ConversationSample(
-            start_date=max_conversation[0],
-            messages=max_conversation
-        ))
+    # Create conversation samples
+    themes = extract_themes(max_conversation)
 
     return ConversationStats(
+        total_messages=len(conversation),
+        participant_count=len(author_and_messages.keys()),
         average_length=round(avg_length, 2),
         longest_conversation_length=len(max_conversation),
-        longest_conversation_start=max_conversation[0],
-        longest_conversation_end=max_conversation[-1],
+        longest_conversation_start=max_conversation[0].date,
+        longest_conversation_end=max_conversation[-1].date,
         most_active_weekday=PeriodStats(period=weekday_most[0], count=weekday_most[1]),
         least_active_weekday=PeriodStats(period=weekday_least[0], count=weekday_least[1]),
         most_active_week=PeriodStats(period=week_most[0], count=week_most[1]),
         least_active_week=PeriodStats(period=week_least[0], count=week_least[1]),
         most_active_month=PeriodStats(period=month_most[0], count=month_most[1]),
-        least_active_month=PeriodStats(period=month_least[0], count=month_least[1])
+        least_active_month=PeriodStats(period=month_least[0], count=month_least[1]),
+        themes=themes
     )
+
+def calculate_conversation_parts(conversation: List[Message], time_threshold=30*60):
+    # Initialize counters
+    weekday_counts = {i: 0 for i in range(7)}  # 0-6: Mon-Sun
+    week_counts = {i: 0 for i in range(53)}    # 0-52 weeks
+    month_counts = {i: 0 for i in range(1, 13)} # 1-12 months
+
+    current_conversation = []
+    conversation_lenghts = []
+    max_conversation = []
+
+    for i, msg in enumerate(conversation[:-1]):
+        current_conversation.append(msg)
+        weekday_counts[msg.date.weekday()] += 1
+        week_counts[msg.date.isocalendar()[1] - 1] += 1
+        month_counts[msg.date.month] += 1
+
+        # Calculate time difference with next message
+        time_diff = (conversation[i+1].date - msg.date).total_seconds()
+        if time_diff > time_threshold:
+            if len(current_conversation) > len(max_conversation):
+                max_conversation = current_conversation.copy()
+            conversation_lenghts.append(len(current_conversation))
+            current_conversation = []
+
+    # Handle last message
+    current_conversation.append(conversation[-1])
+    conversation_lenghts.append(len(current_conversation))
+    if len(current_conversation) > len(max_conversation):
+        max_conversation = current_conversation.copy()
+
+    return weekday_counts, week_counts, month_counts, max_conversation, conversation_lenghts
 
 # Function to clean and tokenize text
 def process_text(text):
@@ -207,19 +195,73 @@ def get_word_metrics(author_and_messages):
         curse_words_frequency=dict(curse_words_frequency.most_common())
     )
 
-def calculate_all_metrics(chat_content):
-    # Parse the chat content
-    dates, author_messages, conversation = parse_whatsapp_chat(chat_content)
+def detect_language(conversation: List[Message]) -> str:
+    """
+    Detect the language of the conversation. Returns 'en' for English or 'pt' for Portuguese.
+    Falls back to 'en' if detection fails.
+    """
+    try:
+        conversation_text = "\n".join([msg.content for msg in conversation])
+        lang = detect(conversation_text)
+        return 'pt' if lang == 'pt' else 'en'
+    except:
+        return 'en'
 
-    # Calculate all metrics
-    heatmap_data = create_messages_heatmap(dates)
-    conversation_stats = calculate_conversation_stats(dates, conversation)
-    word_metrics = get_word_metrics(author_messages)
-    common_words = get_most_common_words(author_messages)
+def create_prompt(conversation: List[Message], language: str) -> str:
+    """
+    Create the prompt for ChatGPT based on the conversation and detected language.
+    """
+    prompts = {
+        'pt': """Analise a seguinte conversa do WhatsApp e liste os principais temas discutidos.
+        Forneça não apenas os temas, mas também exemplos da conversa que ilustram cada tema.
+        
+        Conversa:""",
+        'en': """Analyze the following WhatsApp conversation and list the main themes discussed.
+        Provide not only the themes but also examples from the conversation that illustrate each theme.
+        
+        Conversation:"""
+    }
+    conversation_text = "\n".join([f"{msg.author}: {msg.content}" for msg in conversation])
+    return f"{prompts.get(language, prompts['en'])}\n{conversation_text}"
 
+def extract_themes(conversation: List[Message]) -> str:
+    """
+    Extract main themes from a conversation using ChatGPT
+    """
+    
+    # Initialize OpenAI client
+    client = openai.OpenAI()
+    
+    # Detect language
+    language = detect_language(conversation)
+    
+    # Create prompt for ChatGPT
+    prompt = create_prompt(conversation, language)
+    
+    # Call ChatGPT
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=100
+        )
+        
+        # Extract themes from response
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error extracting themes: {str(e)}")
+        return []
+
+def calculate_all_metrics(chat_content: str) -> AnalysisResponse:
+    """
+    Calculate all metrics for the chat content
+    """
+    dates, author_and_messages, conversation = parse_whatsapp_chat(chat_content)
+    
     return AnalysisResponse(
-        heatmap_data=heatmap_data,
-        conversation_stats=conversation_stats,
-        word_metrics=word_metrics,
-        common_words=common_words
+        conversation_stats=calculate_conversation_stats(conversation, author_and_messages),
+        word_metrics=get_word_metrics(author_and_messages),
+        heatmap_data=create_messages_heatmap(dates),
+        common_words=get_most_common_words(author_and_messages)
     )

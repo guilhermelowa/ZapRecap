@@ -15,13 +15,13 @@ export interface ConversationStats {
   longest_conversation_length: number;
   longest_conversation_start: Date;
   longest_conversation_end: Date;
-  conversation_samples: ConversationSample[];
   most_active_weekday: PeriodStats;
   least_active_weekday: PeriodStats;
   most_active_week: PeriodStats;
   least_active_week: PeriodStats;
   most_active_month: PeriodStats;
   least_active_month: PeriodStats;
+  themes: string;
 }
 
 export interface WordMetrics {

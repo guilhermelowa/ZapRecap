@@ -7,16 +7,9 @@ class Message(BaseModel):
     author: str
     content: str
 
-class Conversation(BaseModel):
-    messages: List[Message]
-
 class PeriodStats(BaseModel):
     period: int # weekday, week number or month number
     count: int
-
-class ConversationSample(BaseModel):
-    start_date: datetime
-    messages: List[str]
 
 class ConversationStats(BaseModel):
     total_messages: int
@@ -25,13 +18,13 @@ class ConversationStats(BaseModel):
     longest_conversation_length: int
     longest_conversation_start: datetime
     longest_conversation_end: datetime
-    conversation_samples: List[ConversationSample]
     most_active_weekday: PeriodStats
     least_active_weekday: PeriodStats
     most_active_week: PeriodStats
     least_active_week: PeriodStats
     most_active_month: PeriodStats
     least_active_month: PeriodStats
+    themes: str
 
 class HeatmapData(BaseModel):
     z: List[List[float]]          # message counts
@@ -49,7 +42,7 @@ class WordMetrics(BaseModel):
     curse_words_frequency: Dict[str, int]
 
 class AnalysisResponse(BaseModel):
-    heatmap_data: HeatmapData
     conversation_stats: ConversationStats
     word_metrics: WordMetrics
+    heatmap_data: HeatmapData
     common_words: Dict[str, int]

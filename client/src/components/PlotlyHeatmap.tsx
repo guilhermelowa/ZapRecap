@@ -3,6 +3,7 @@ import Plotly from 'plotly.js-dist';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { HeatmapData } from '../types/apiTypes';
 import { createLayout } from '../styles/plotlyLayouts';
+import { useTranslation } from 'react-i18next';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -24,7 +25,7 @@ interface PlotlyHeatmapProps {
 }
 
 const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
-    console.log('Heatmap Data:', heatmapData); // Debug data
+    const { t } = useTranslation();
 
     const data: PlotlyHeatmapData[] = [{
         ...heatmapData,
@@ -45,18 +46,24 @@ const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
     return (
         <div style={{
             position: 'relative',
-            left: '-490px',  
-            width: '350%',
+            width: '100%',
+            maxWidth: '90vw',
             display: 'flex',
             justifyContent: 'center',
             overflow: 'hidden',
-            margin: 0,
+            margin: '0 auto',
             padding: 0,
             boxSizing: 'border-box'
         }}>
             <Plot
                 data={data}
-                layout={createLayout(heatmapData)}
+                layout={{
+                    ...createLayout(heatmapData, t),
+                    title: t('messageActivityHeatmap'),
+                    width: typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.9, 1200) : 1024,
+                    height: 500,
+                    margin: { t: 30, l: 50, r: 50, b: 60 }
+                }}
                 style={{
                     width: '100%',
                     height: '500px',

@@ -1,91 +1,104 @@
 import React from 'react';
 import { ConversationStats as Stats } from '../types/apiTypes';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface ConversationStatsProps {
     stats: Stats;
 }
 
 const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
-    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                   'July', 'August', 'September', 'October', 'November', 'December'];
+    const { t } = useTranslation();
+    const weekdays = t('weekdays', { returnObjects: true }) as string[];
+    const months = t('months', { returnObjects: true }) as string[];
 
     return (
         <div className="stats-container" style={{ color: '#ffffff', padding: '20px' }}>
             <section className="conversation-length">
-                <h3>📊 Conversation Patterns</h3>
+                <h3>{t('stats.conversationPatterns')}</h3>
                 <p>
-                    On average, your conversations last about {stats.average_length} messages! 
-                    {stats.average_length > 10 ? " You're quite the chatters! 🗣️" : " Short and sweet! 💝"}
+                    {t('stats.averageConversationLength')} <b>{stats.average_length}</b> {t('stats.messages') + " "}
+                    {stats.average_length > 10 ? t('stats.chattersComment') : t('stats.shortSweetComment')}
                 </p>
                 <p>
-                    Your longest conversation had {stats.longest_conversation_length} messages! 
-                    Starting on {format(new Date(stats.longest_conversation_start), 'PPP')} 
-                    and ending on {format(new Date(stats.longest_conversation_end), 'PPP')}. 
-                    That was epic! 🚀
+                    {t('stats.longestConversation')} <b>{stats.longest_conversation_length}</b> {t('stats.messages') + " "}
+                    {t('stats.startingOn')} {format(new Date(stats.longest_conversation_start), 'PPP')}{' '}
+                    {t('stats.endingOn')} {format(new Date(stats.longest_conversation_end), 'PPP')}. 
+                    {" " + t('stats.epicComment')}
                 </p>
             </section>
 
             <section className="active-periods">
-                <h3>⏰ Time Patterns</h3>
+                <h3>{t('stats.timePatterns')}</h3>
                 <p>
-                    {weekdays[stats.most_active_weekday.period]} is your power day with 
-                    {stats.most_active_weekday.count} messages last year! 
-                    {stats.most_active_weekday.period === 0 ? " Sunday funday! 🎉" : 
-                     stats.most_active_weekday.period === 1 ? " Starting the week strong! 💪" :
-                     stats.most_active_weekday.period === 2 ? " Taco Tuesday! 🌮" :
-                     stats.most_active_weekday.period === 3 ? " Midweek motivation! 🎯" :
-                     stats.most_active_weekday.period === 4 ? " Almost there! 🚀" :
-                     stats.most_active_weekday.period === 5 ? " TGIF! 🎊" :
-                     " Weekend vibes! 🎸"}
+                    {weekdays[stats.most_active_weekday.period]} {t('stats.powerDay')}
+                    {' '}<b>{stats.most_active_weekday.count}</b> {t('stats.messagesLastYear')}
                 </p>
                 <p>
-                    {weekdays[stats.least_active_weekday.period]} seems to be your quiet day... 
-                    Only {stats.least_active_weekday.count} messages. 
-                    {stats.least_active_weekday.period === 1 ? " Monday blues? 😴" : " Taking a break? 🌅"}
+                    {weekdays[stats.least_active_weekday.period]} {t('stats.quietDay') + " "}
+                    <b>{stats.least_active_weekday.count}</b>.
+                    {" " + (stats.least_active_weekday.period === 1 ? t('stats.mondayBlues') : t('stats.takingBreak'))}
                 </p>
             </section>
 
             <section className="monthly-patterns">
-                <h3>📅 Monthly Review</h3>
+                <h3>{t('stats.monthlyReview')}</h3>
                 <p>
-                    {months[stats.most_active_month.period - 1]} was your chattiest month with 
-                    {stats.most_active_month.count} messages! 
-                    {stats.most_active_month.period >= 6 && stats.most_active_month.period <= 8 ? 
-                    " Summer vibes! ☀️" : " 💫"}
+                    {t(`months.${stats.most_active_month.period}`)} {t('stats.chattiestMonth')}
+                    {' '}<b>{stats.most_active_month.count}</b> {t('stats.messages')}! 
+                    {' ' + (stats.most_active_month.period >= 6 && stats.most_active_month.period <= 8 ? 
+                    t('stats.summerVibes') : t('stats.normalVibes'))}
                 </p>
                 <p>
-                    {months[stats.least_active_month.period - 1]} was pretty quiet with only 
-                    {stats.least_active_month.count} messages. 
-                    {stats.least_active_month.period === 12 ? " Holiday break? 🎄" : " 🌙"}
+                    {t(`months.${stats.least_active_month.period}`)} {t('stats.quietMonth')}
+                    {' '}<b>{stats.least_active_month.count}</b> {t('stats.messages')}. 
+                    {stats.least_active_month.period === 12 ? t('stats.holidayBreak') : t('stats.quietVibes')}
                 </p>
             </section>
 
             <section className="weekly-insights">
-                <h3>🗓️ Weekly Rhythms</h3>
+                <h3>{t('stats.weeklyRhythms')}</h3>
                 <p>
-                    Week {stats.most_active_week.period + 1} was intense with 
-                    {stats.most_active_week.count} messages! What happened there? 🤔
+                    {t('stats.intenseWeek')} <b>{stats.most_active_week.period + 1}</b> {t('stats.wasIntense')}
+                    {' '}<b>{stats.most_active_week.count}</b> {t('stats.whatHappened')}
                 </p>
                 <p>
-                    Week {stats.least_active_week.period + 1} was your quietest with just 
-                    {stats.least_active_week.count} messages. Vacation time? ✈️
+                    {t('stats.intenseWeek')} <b>{stats.least_active_week.period + 1}</b> {t('stats.quietestWeek')}
+                    {' '}<b>{stats.least_active_week.count}</b> {t('stats.vacationTime')}
                 </p>
             </section>
 
             <section className="theme-patterns">
-                <h3>🎨 Theme Patterns</h3>
-                <p>
-                    According to ChatGPT, your most common themes are: 
-                    <span style={{ 
-                        backgroundColor: '#f5f5f5', 
-                        padding: '5px', 
-                        borderRadius: '5px', 
-                        marginRight: '5px'
-                    }}>{stats.themes}</span>
-                    {stats.themes.length > 1 ? " 🎉" : " 😊"}
-                </p>
+                <h3>{t('stats.themesFromBusiestDay')}</h3>
+                <p>{t('stats.commonThemes')}</p>
+                <div style={{ 
+                    padding: '10px', 
+                    borderRadius: '5px',
+                    marginTop: '10px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }}>
+                    {Object.entries(stats.themes).map(([theme, example], index) => (
+                        <div key={index} style={{ 
+                            marginBottom: '12px',
+                            padding: '8px 12px',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}>
+                            <div>{theme}</div>
+                            {example && (
+                                <div style={{
+                                    marginTop: '4px',
+                                    marginLeft: '20px',
+                                    fontSize: '0.95em',
+                                    color: 'rgba(255, 255, 255, 0.8)'
+                                }}>
+                                    - {example}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
             </section>
         </div>
     );

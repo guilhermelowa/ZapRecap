@@ -21,7 +21,7 @@ export interface ConversationStats {
   least_active_week: PeriodStats;
   most_active_month: PeriodStats;
   least_active_month: PeriodStats;
-  themes: string;
+  themes: { [theme: string]: string };
 }
 
 export interface WordMetrics {
@@ -58,11 +58,20 @@ export interface HeatmapData {
   dates: string[][];      // date strings
 }
 
+export interface Message {
+  author: string;
+  content: string;
+  date: Date;
+}
+
 export interface AnalysisResponse {
   heatmap_data: HeatmapData;
   conversation_stats: ConversationStats;
   word_metrics: WordMetrics;
   common_words: {
     [word: string]: number;
-  }
+  };
+  author_messages: {
+    [author: string]: Message[];
+  };
 }

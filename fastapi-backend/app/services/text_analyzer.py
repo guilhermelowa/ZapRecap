@@ -1,16 +1,13 @@
 from collections import Counter, defaultdict
 from typing import List
-from datetime import datetime
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import numpy as np
 import re
-import os
-import openai
-from langdetect import detect
 from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, HeatmapData, PeriodStats, Message
 from app.services.parsing_utils import parse_whatsapp_chat
+from app.services.chatgpt_utils import extract_themes
 
 # Download required NLTK data
 nltk.download('punkt_tab')
@@ -73,7 +70,7 @@ def calculate_conversation_stats(conversation, author_and_messages):
     month_least = min(month_counts.items(), key=lambda x: x[1])
 
     # Create conversation samples
-    themes = extract_themes(max_conversation)
+    themes_with_examples = extract_themes(max_conversation)
 
     return ConversationStats(
         total_messages=len(conversation),
@@ -88,7 +85,7 @@ def calculate_conversation_stats(conversation, author_and_messages):
         least_active_week=PeriodStats(period=week_least[0], count=week_least[1]),
         most_active_month=PeriodStats(period=month_most[0], count=month_most[1]),
         least_active_month=PeriodStats(period=month_least[0], count=month_least[1]),
-        themes=themes
+        themes=themes_with_examples
     )
 
 def calculate_conversation_parts(conversation: List[Message], time_threshold=30*60):
@@ -141,8 +138,8 @@ def get_most_common_words(author_and_messages, top_n=20):
     all_words = []
     for author, messages in author_and_messages.items():
         if author is not None:  # Skip None author
-            for _, content in messages:
-                words = process_text(content)
+            for msg in messages:
+                words = process_text(msg.content)
                 all_words.extend(words)
 
     # Count word frequencies
@@ -169,14 +166,14 @@ def get_word_metrics(author_and_messages):
         if author is not None:
             # Message count and length calculations
             messages_per_author[author] = len(messages)
-            total_length = sum(len(msg[1]) for msg in messages)
+            total_length = sum(len(msg.content) for msg in messages)
             message_lengths[author] = total_length / len(messages)
             
             # curse_words calculations
             curse_words_count[author] = 0
-            for _, content in messages:
+            for msg in messages:
                 for word in curse_words:
-                    count = content.count(word)
+                    count = msg.content.count(word)
                     if count > 0:
                         curse_words_count[author] += count
                         curse_words_by_author[author][word] += count
@@ -195,64 +192,6 @@ def get_word_metrics(author_and_messages):
         curse_words_frequency=dict(curse_words_frequency.most_common())
     )
 
-def detect_language(conversation: List[Message]) -> str:
-    """
-    Detect the language of the conversation. Returns 'en' for English or 'pt' for Portuguese.
-    Falls back to 'en' if detection fails.
-    """
-    try:
-        conversation_text = "\n".join([msg.content for msg in conversation])
-        lang = detect(conversation_text)
-        return 'pt' if lang == 'pt' else 'en'
-    except:
-        return 'en'
-
-def create_prompt(conversation: List[Message], language: str) -> str:
-    """
-    Create the prompt for ChatGPT based on the conversation and detected language.
-    """
-    prompts = {
-        'pt': """Analise a seguinte conversa do WhatsApp e liste os principais temas discutidos.
-        Forneça não apenas os temas, mas também exemplos da conversa que ilustram cada tema.
-        
-        Conversa:""",
-        'en': """Analyze the following WhatsApp conversation and list the main themes discussed.
-        Provide not only the themes but also examples from the conversation that illustrate each theme.
-        
-        Conversation:"""
-    }
-    conversation_text = "\n".join([f"{msg.author}: {msg.content}" for msg in conversation])
-    return f"{prompts.get(language, prompts['en'])}\n{conversation_text}"
-
-def extract_themes(conversation: List[Message]) -> str:
-    """
-    Extract main themes from a conversation using ChatGPT
-    """
-    
-    # Initialize OpenAI client
-    client = openai.OpenAI()
-    
-    # Detect language
-    language = detect_language(conversation)
-    
-    # Create prompt for ChatGPT
-    prompt = create_prompt(conversation, language)
-    
-    # Call ChatGPT
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=100
-        )
-        
-        # Extract themes from response
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"Error extracting themes: {str(e)}")
-        return []
-
 def calculate_all_metrics(chat_content: str) -> AnalysisResponse:
     """
     Calculate all metrics for the chat content
@@ -263,5 +202,6 @@ def calculate_all_metrics(chat_content: str) -> AnalysisResponse:
         conversation_stats=calculate_conversation_stats(conversation, author_and_messages),
         word_metrics=get_word_metrics(author_and_messages),
         heatmap_data=create_messages_heatmap(dates),
-        common_words=get_most_common_words(author_and_messages)
+        common_words=get_most_common_words(author_and_messages),
+        author_messages=author_and_messages
     )

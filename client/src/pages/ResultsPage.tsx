@@ -4,9 +4,12 @@ import Header from '../components/Header';
 import ConversationStats from '../components/ConversationStats';
 import PlotlyHeatmap from '../components/PlotlyHeatmap';
 import PlotlyBarCharts from '../components/PlotlyBarCharts';
+import AuthorSimulator from '../components/AuthorSimulator';
+import { useTranslation } from 'react-i18next';
 
 const ResultsPage = () => {
   const location = useLocation();
+  const { t } = useTranslation();
   console.log('Location state:', location.state);
   
   if (!location.state) {
@@ -19,11 +22,12 @@ const ResultsPage = () => {
     return (
       <div>
         <Header />
-        <h1>Analysis Results</h1>
+        <h1>{t('results.title')}</h1>
         <PlotlyBarCharts metrics={result} />
-        <h2>Message statistics</h2>
+        <h2>{t('results.messageStatistics')}</h2>
         <ConversationStats stats={result.conversation_stats} />
         <PlotlyHeatmap heatmapData={result.heatmap_data} />
+        <AuthorSimulator metrics={result} />
       </div>
     );
   } catch (error) {

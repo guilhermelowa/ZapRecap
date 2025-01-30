@@ -103,6 +103,7 @@ body {
 }
 
 .whatsapp-header {
+  position: relative;
   background-color: #25D366;
   padding: 2rem;
   text-align: center;

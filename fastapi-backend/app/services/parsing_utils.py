@@ -22,12 +22,12 @@ def parse_message(message):
     except ValueError:
         return "None", "None"
 
-def store_message(messages, date, author, content):
+def store_message(messages, msg):
     # Store message in messages dictionary
     try:
-        messages[author].append((date, content))
+        messages[msg.author].append(msg)
     except KeyError:
-        messages[author] = [(date, content)]
+        messages[msg.author] = [msg]
     except TypeError:
         pass
 
@@ -52,7 +52,7 @@ def parse_whatsapp_chat(chat_text):
     lines = [line.strip().lower() for line in lines if line.strip()]
     
     if len(lines) < 2:  # Check if there are at least 2 lines
-        return [], {}
+        return [], {}, []
     
     while date < OLDEST_DATE:
         lines = lines[1:] # skip line. always skip first line (default WhatsApp msg)
@@ -60,19 +60,23 @@ def parse_whatsapp_chat(chat_text):
 
     dates.append(date)
     current_author, current_message = parse_message(message)
-    conversation.append(Message(date=date, author=current_author, content=current_message))
+    msg = Message(date=date, author=current_author, content=current_message)
+    conversation.append(msg)
+    author_and_messages[current_author] = [msg]
 
     for line in lines[2:]:  # Process remaining lines
         if is_new_message(line):
-            store_message(author_and_messages, date, current_author, current_message)
-            conversation.append(Message(date=date, author=current_author, content=current_message))
+            msg = Message(date=date, author=current_author, content=current_message)
+            store_message(author_and_messages, msg)
+            conversation.append(msg)
             date, message = parse_line(line)
             dates.append(date)
             current_author, current_message = parse_message(message)
         else:
             current_message += ' ' + line
             
-    store_message(author_and_messages, date, current_author, current_message)
-    conversation.append(Message(date=date, author=current_author, content=current_message))
+    msg = Message(date=date, author=current_author, content=current_message)
+    store_message(author_and_messages, msg)
+    conversation.append(msg)
     
     return dates, author_and_messages, conversation

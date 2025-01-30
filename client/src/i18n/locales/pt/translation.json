@@ -1,5 +1,5 @@
 {
-  "title": "Analisador de Chat do WhatsApp",
+  "title": "WhatsApp Recap",
   "results": {
     "totalMessages": "Total de Mensagens",
     "totalParticipants": "Total de Participantes",
@@ -30,10 +30,10 @@
     "mostCommonWordsDescription": "📚 Aqui está o assunto do momento! 🎯",
     "curseWordsPerAuthor": "Palavrões por Autor",
     "curseWordsFrequency": "Palavrões Mais Usados",
-    "curseWordsHighParticipants": "🤐 Hora de ver quem anda apimentando a conversa! 🌶️",
+    "curseWordsHighParticipants": "🤐 Quem tá com a boca suja? 🤬",
     "curseWordsLowParticipants": "🤐 Vamos ver o vocabulário picante! 🌶️",
-    "curseWordsHighFrequency": "🔥 O hall da fama do vocabulário apimentado! 🏆",
-    "curseWordsLowFrequency": "🔥 Uma espiadinha no lado picante do chat! 🌶️",
+    "curseWordsHighFrequency": "🔥 O hall da fama do vocabulário obsceno 🏆",
+    "curseWordsLowFrequency": "🔥 Uma espiadinha no lado obsceno do chat! 🌶️",
     "title": "Resultados da Análise",
     "messageStatistics": "Estatísticas de Mensagens"
   },
@@ -89,7 +89,11 @@
     "wasIntense": "foi intensa com",
     "whatHappened": "mensagens! O que aconteceu? 🤔",
     "quietestWeek": "foi a mais tranquila com apenas",
-    "vacationTime": "mensagens. Hora das férias? ✈️"
+    "vacationTime": "mensagens. Hora das férias? ✈️",
+    "conversationDefinition": "Uma conversa é considerada finalizada quando não há novas mensagens dentro de 30 minutos",
+    "reportIssue": "Reportar Problema",
+    "reportSuccess": "Obrigado por reportar o problema. Nossa equipe irá analisar.",
+    "reportError": "Desculpe, houve um erro ao enviar o relatório. Por favor, tente novamente."
   },
   "simulator": {
     "title": "Simulador de Mensagens",
@@ -122,5 +126,6 @@
     "11": "Novembro",
     "12": "Dezembro"
   },
-  "messageActivityHeatmap": "Mapa de Calor de Mensagens"
+  "messageActivityHeatmap": "Mapa de Calor de Mensagens",
+  "reportIssue": "Reportar Problema"
 } 

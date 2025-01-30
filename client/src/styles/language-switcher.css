@@ -1,0 +1,35 @@
+.language-switcher {
+  position: absolute;
+  top: 50%;
+  right: 2rem;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 1000;
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-btn:hover {
+  background: #f5f5f5;
+}
+
+.lang-btn.active {
+  background: #e0e0e0;
+  border-color: #bbb;
+}
+
+.flag {
+  width: 1.2em;
+  height: 1.2em;
+}

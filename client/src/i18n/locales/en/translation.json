@@ -1,5 +1,5 @@
 {
-  "title": "WhatsApp Chat Analyzer",
+  "title": "WhatsApp Recap",
   "results": {
     "totalMessages": "Total Messages",
     "totalParticipants": "Total Participants",
@@ -75,7 +75,11 @@
     "wasIntense": "was intense with",
     "whatHappened": "messages! What happened there? 🤔",
     "quietestWeek": "was your quietest with just",
-    "vacationTime": "messages. Vacation time? ✈️"
+    "vacationTime": "messages. Vacation time? ✈️",
+    "conversationDefinition": "A conversation is considered finished when there are no new messages within 30 minutes",
+    "reportIssue": "Report Issue",
+    "reportSuccess": "Thank you for reporting the issue. Our team will look into it.",
+    "reportError": "Sorry, there was an error submitting your report. Please try again."
   },
   "simulator": {
     "title": "Message Simulator",
@@ -122,5 +126,6 @@
     "11": "November",
     "12": "December"
   },
-  "messageActivityHeatmap": "Message Activity Heatmap"
+  "messageActivityHeatmap": "Message Activity Heatmap",
+  "reportIssue": "Report Issue"
 } 

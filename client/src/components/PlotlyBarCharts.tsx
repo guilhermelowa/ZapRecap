@@ -1,12 +1,16 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
 import { AnalysisResponse } from '../types/apiTypes';
+import { useTranslation } from 'react-i18next';
+import ReportButton from './ReportButton';
 
 interface PlotlyBarChartsProps {
   metrics: AnalysisResponse;
 }
 
 const PlotlyBarCharts: React.FC<PlotlyBarChartsProps> = ({ metrics }) => {
+  const { t, i18n } = useTranslation();
+
   const capitalizeNames = (name: string): string => {
     return name
       .split(' ')
@@ -27,24 +31,30 @@ const PlotlyBarCharts: React.FC<PlotlyBarChartsProps> = ({ metrics }) => {
   };
 
   const getContainerStyle = (dataLength: number) => {
-    const baseWidth = 100;
-    const widthPerItem = 50;
-    const width = Math.min(350, Math.max(100, baseWidth + (dataLength * widthPerItem)));
-    const leftOffset = -(width * 1.4);
+    // Base width per bar in pixels
+    const widthPerBar = 100;
+    // Calculate total width based on number of bars
+    const calculatedWidth = dataLength * widthPerBar;
+    // Get viewport width
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    // Maximum width should be 90% of viewport
+    const maxWidth = viewportWidth * 0.9;
+    // Final width in pixels (minimum 300px, maximum maxWidth)
+    const finalWidth = Math.max(300, Math.min(calculatedWidth, maxWidth));
     
     return {
-      position: 'relative',
-      left: `${leftOffset}px`,
-      width: `${width}%`,
+      position: 'relative' as const,
+      width: `${finalWidth}px`,
+      maxWidth: '90vw',
       innerHeight: '500px',
       outerHeight: '500px',
       display: 'flex',
       justifyContent: 'center',
       overflow: 'hidden',
-      margin: '0 0 100px 0',
+      margin: '0 auto 100px auto',
       padding: 0,
-      boxSizing: 'border-box'
-    } as const;
+      boxSizing: 'border-box' as const
+    };
   };
 
   // Transform data for each chart
@@ -124,82 +134,117 @@ const PlotlyBarCharts: React.FC<PlotlyBarChartsProps> = ({ metrics }) => {
   };
 
   return (
-    <div style={{ 
-        textAlign: 'center', 
-        color: '#ffffff', 
-        marginBottom: '20px'
-    }}>
-        <h2>Word metrics</h2>
-        <h3>Messages per author</h3>
+    <div style={{ textAlign: 'center', color: '#ffffff', marginBottom: '20px' }}>
+      <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {t('results.wordMetrics')}
+      </h2>
+      <div id="word-metrics">
+        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {t('results.messagesPerAuthor')}
+          <ReportButton 
+            sectionId="messages-per-author"
+            sectionName="Messages per Author"
+            contextData={messagesPerAuthor}
+          />
+        </h3>
         <h4>
           {Object.keys(metrics.word_metrics.messages_per_author).length > 2 
-            ? "📊 Let's see who's been keeping the chat alive! 🗣️" 
-            : "📊 Let's see your conversation history! 🗣️"}
+            ? t('charts.messageDistributionHigh') 
+            : t('charts.messageDistributionLow')}
         </h4>
         <div style={getContainerStyle(Object.keys(metrics.word_metrics.messages_per_author).length)}>
-            <Plot
-                data={[messagesPerAuthor]}
-                layout={{...layout,}}
-                style={{ width: '100%', height: '400px' }}
-                config={{ responsive: true, displayModeBar: false }}
-            />
+          <Plot
+            data={[messagesPerAuthor]}
+            layout={{...layout,}}
+            style={{ width: '100%', height: '400px' }}
+            config={{ responsive: true, displayModeBar: false }}
+          />
         </div>
 
-        <h3>Average Message Length</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {t('results.averageMessageLength')}
+          <ReportButton 
+            sectionId="average-message-length"
+            sectionName="Average Message Length"
+            contextData={averageMessageLength}
+          />
+        </h3>
         <h4>
           {Object.keys(metrics.word_metrics.average_message_length).length > 2 
-            ? "🔍 Who's the group's chatterbox? Find out below! 💬" 
-            : "🔍 Let's compare your message lengths! 💬"}
+            ? t('charts.averageMessageLengthHigh')
+            : t('charts.averageMessageLengthLow')}
         </h4>
         <div style={getContainerStyle(Object.keys(metrics.word_metrics.average_message_length).length)}>
-            <Plot
-                data={[averageMessageLength]}
-                layout={{...layout}}
-                style={{ width: '100%', height: '400px' }}
-                config={{ responsive: true, displayModeBar: false }}
-            />
+          <Plot
+            data={[averageMessageLength]}
+            layout={{...layout}}
+            style={{ width: '100%', height: '400px' }}
+            config={{ responsive: true, displayModeBar: false }}
+          />
         </div>
 
-        <h3>Curse Words per Author</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {t('results.curseWordsPerAuthor')}
+          <ReportButton 
+            sectionId="curse-words-per-author"
+            sectionName="Curse Words per Author"
+            contextData={curseWordsPerAuthor}
+          />
+        </h3>
         <h4>
           {Object.keys(metrics.word_metrics.curse_words_per_author).length > 2 
-            ? "🤐 Time to see who's been keeping it spicy! 🌶️" 
-            : "🤐 Let's check out the spicy vocabulary! 🌶️"}
+            ? t('results.curseWordsHighParticipants')
+            : t('results.curseWordsLowParticipants')}
         </h4>
         <div style={getContainerStyle(Object.keys(metrics.word_metrics.curse_words_per_author).length)}>
-            <Plot
-                data={[curseWordsPerAuthor]}
-                layout={{...layout}}
-                style={{ width: '100%', height: '400px' }}
-                config={{ responsive: true, displayModeBar: false }}
-            />
+          <Plot
+            data={[curseWordsPerAuthor]}
+            layout={{...layout}}
+            style={{ width: '100%', height: '400px' }}
+            config={{ responsive: true, displayModeBar: false }}
+          />
         </div>
 
-        <h3>Most Used Curse Words</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {t('results.curseWordsFrequency')}
+          <ReportButton 
+            sectionId="curse-words-frequency"
+            sectionName="Curse Words Frequency"
+            contextData={curseWordsFrequency}
+          />
+        </h3>
         <h4>
           {Object.keys(metrics.word_metrics.curse_words_frequency).length > 5 
-            ? "🔥 Here's the hall of fame for spicy vocabulary! 🏆" 
-            : "🔥 A peek at the spicier side of your chat! 🌶️"}
+            ? t('results.curseWordsHighFrequency')
+            : t('results.curseWordsLowFrequency')}
         </h4>
         <div style={getContainerStyle(Object.keys(metrics.word_metrics.curse_words_frequency).length)}>
-            <Plot
-                data={[curseWordsFrequency]}
-                layout={{...layout}}
-                style={{ width: '100%', height: '400px' }}
-                config={{ responsive: true, displayModeBar: false }}
-            />
+          <Plot
+            data={[curseWordsFrequency]}
+            layout={{...layout}}
+            style={{ width: '100%', height: '400px' }}
+            config={{ responsive: true, displayModeBar: false }}
+          />
         </div>
 
-        <h2>Most Common Words</h2>
-        <h4>📚 The most popular words in your conversations! 🔍</h4>
+        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {t('results.mostCommonWords')}
+          <ReportButton 
+            sectionId="most-common-words"
+            sectionName="Most Common Words"
+            contextData={curseWordsFrequency}
+          />
+        </h3>
+        <h4>{t('results.mostCommonWordsDescription')}</h4>
         <div style={getContainerStyle(Object.keys(metrics.common_words).length)}>
-            <Plot
-                data={[commonWords]}
-                layout={{...layout}}
-                style={{ width: '100%', height: '400px' }}
-                config={{ responsive: true, displayModeBar: false }}
-            />
+          <Plot
+            data={[commonWords]}
+            layout={{...layout}}
+            style={{ width: '100%', height: '400px' }}
+            config={{ responsive: true, displayModeBar: false }}
+          />
         </div>
+      </div>
     </div>
   );
 };

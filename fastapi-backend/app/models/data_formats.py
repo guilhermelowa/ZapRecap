@@ -24,7 +24,7 @@ class ConversationStats(BaseModel):
     least_active_week: PeriodStats
     most_active_month: PeriodStats
     least_active_month: PeriodStats
-    themes: str
+    themes: Dict[str, str]
 
 class HeatmapData(BaseModel):
     z: List[List[float]]          # message counts
@@ -46,3 +46,4 @@ class AnalysisResponse(BaseModel):
     word_metrics: WordMetrics
     heatmap_data: HeatmapData
     common_words: Dict[str, int]
+    author_messages: Dict[str, List[Message]]

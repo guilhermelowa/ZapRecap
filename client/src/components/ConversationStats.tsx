@@ -1,21 +1,115 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { ConversationStats as Stats } from '../types/apiTypes';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import ReportButton from './ReportButton';
 
 interface ConversationStatsProps {
     stats: Stats;
 }
 
+const styles = `
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+
+const styleSheet = document.createElement("style");
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
+
 const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
     const { t } = useTranslation();
     const weekdays = t('weekdays', { returnObjects: true }) as string[];
     const months = t('months', { returnObjects: true }) as string[];
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+    const questionMarkRef = useRef<HTMLSpanElement>(null);
+
+    const updateTooltipPosition = () => {
+        if (questionMarkRef.current) {
+            const rect = questionMarkRef.current.getBoundingClientRect();
+            setTooltipPosition({
+                x: rect.left,
+                y: rect.bottom + window.scrollY + 8 // 8px below the question mark
+            });
+        }
+    };
 
     return (
         <div className="stats-container" style={{ color: '#ffffff', padding: '20px' }}>
-            <section className="conversation-length">
-                <h3>{t('stats.conversationPatterns')}</h3>
+            <section id="conversation-length" className="conversation-length">
+                <h3>
+                    {t('stats.conversationPatterns')}
+                    <ReportButton 
+                        sectionId="conversation-length" 
+                        sectionName="Conversation Length"
+                        contextData={stats}
+                    />
+                    <span 
+                        ref={questionMarkRef}
+                        style={{ 
+                            marginLeft: '8px',
+                            cursor: 'help',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            fontSize: '14px',
+                            transition: 'all 0.2s ease',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            position: 'relative'
+                        }}
+                        onMouseEnter={(e) => {
+                            const target = e.currentTarget;
+                            target.style.transform = 'scale(1.1)';
+                            target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                            updateTooltipPosition();
+                            setShowTooltip(true);
+                        }}
+                        onMouseLeave={(e) => {
+                            const target = e.currentTarget;
+                            target.style.transform = 'scale(1)';
+                            target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            setShowTooltip(false);
+                        }}
+                    >
+                        ?
+                    </span>
+                </h3>
+                {showTooltip && (
+                    <div 
+                        style={{
+                            position: 'absolute',
+                            left: `${tooltipPosition.x}px`,
+                            top: `${tooltipPosition.y}px`,
+                            backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            borderRadius: '8px',
+                            padding: '12px 16px',
+                            maxWidth: '300px',
+                            zIndex: 1000,
+                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                            fontSize: '14px',
+                            lineHeight: '1.5',
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            backdropFilter: 'blur(5px)',
+                            animation: 'fadeIn 0.2s ease-in-out'
+                        }}
+                    >
+                        {t('stats.conversationDefinition')}
+                    </div>
+                )}
                 <p>
                     {t('stats.averageConversationLength')} <b>{stats.average_length}</b> {t('stats.messages') + " "}
                     {stats.average_length > 10 ? t('stats.chattersComment') : t('stats.shortSweetComment')}
@@ -28,8 +122,15 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                 </p>
             </section>
 
-            <section className="active-periods">
-                <h3>{t('stats.timePatterns')}</h3>
+            <section id="active-periods" className="active-periods">
+                <h3>
+                    {t('stats.timePatterns')}
+                    <ReportButton 
+                        sectionId="active-periods" 
+                        sectionName="Active Periods"
+                        contextData={stats}
+                    />
+                </h3>
                 <p>
                     {weekdays[stats.most_active_weekday.period]} {t('stats.powerDay')}
                     {' '}<b>{stats.most_active_weekday.count}</b> {t('stats.messagesLastYear')}
@@ -41,8 +142,15 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                 </p>
             </section>
 
-            <section className="monthly-patterns">
-                <h3>{t('stats.monthlyReview')}</h3>
+            <section id="monthly-patterns" className="monthly-patterns">
+                <h3>
+                    {t('stats.monthlyReview')}
+                    <ReportButton 
+                        sectionId="monthly-patterns" 
+                        sectionName="Monthly Patterns"
+                        contextData={stats}
+                    />
+                </h3>
                 <p>
                     {t(`months.${stats.most_active_month.period}`)} {t('stats.chattiestMonth')}
                     {' '}<b>{stats.most_active_month.count}</b> {t('stats.messages')}! 
@@ -56,8 +164,15 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                 </p>
             </section>
 
-            <section className="weekly-insights">
-                <h3>{t('stats.weeklyRhythms')}</h3>
+            <section id="weekly-insights" className="weekly-insights">
+                <h3>
+                    {t('stats.weeklyRhythms')}
+                    <ReportButton 
+                        sectionId="weekly-insights" 
+                        sectionName="Weekly Insights"
+                        contextData={stats}
+                    />
+                </h3>
                 <p>
                     {t('stats.intenseWeek')} <b>{stats.most_active_week.period + 1}</b> {t('stats.wasIntense')}
                     {' '}<b>{stats.most_active_week.count}</b> {t('stats.whatHappened')}
@@ -68,8 +183,15 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                 </p>
             </section>
 
-            <section className="theme-patterns">
-                <h3>{t('stats.themesFromBusiestDay')}</h3>
+            <section id="theme-patterns" className="theme-patterns">
+                <h3>
+                    {t('stats.themesFromBusiestDay')}
+                    <ReportButton 
+                        sectionId="theme-patterns" 
+                        sectionName="Theme Patterns"
+                        contextData={stats}
+                    />
+                </h3>
                 <p>{t('stats.commonThemes')}</p>
                 <div style={{ 
                     padding: '10px', 

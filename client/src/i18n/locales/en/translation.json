@@ -127,5 +127,28 @@
     "12": "December"
   },
   "messageActivityHeatmap": "Message Activity Heatmap",
-  "reportIssue": "Report Issue"
+  "reportIssue": "Report Issue",
+  "premium": {
+    "unlockFeatures": "🌟 Unlock Premium Features",
+    "description": "Get access to advanced analysis and AI-powered features!",
+    "feature1": "🎨 Discover conversation themes analyzed by AI",
+    "feature2": "🤖 Use our AI message simulator",
+    "unlock": "Unlock Premium for",
+    "scanQRCode": "Scan the Pix QR Code",
+    "waitingPayment": "Waiting for payment confirmation...",
+    "price": "Premium Features - $",
+    "pixCopyCola": "Pix Copia e Cola",
+    "copy": "Copy",
+    "generatingPayment": "Generating payment information..."
+  },
+  "suggestions": {
+    "title": "Suggest New Analysis Features",
+    "placeholder": "What other analysis would you like to see? Share your ideas!",
+    "submit": "Submit Suggestion",
+    "thankYou": "Thank you for your suggestion!",
+    "error": "Failed to submit suggestion. Please try again."
+  },
+  "common": {
+    "submitting": "Submitting..."
+  }
 } 

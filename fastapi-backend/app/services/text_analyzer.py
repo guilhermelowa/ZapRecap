@@ -7,7 +7,7 @@ import numpy as np
 import re
 from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, HeatmapData, PeriodStats, Message
 from app.services.parsing_utils import parse_whatsapp_chat
-from app.services.chatgpt_utils import extract_themes
+from app.services.chatgpt_utils import extract_themes, simulate_author_message
 
 # Download required NLTK data
 nltk.download('punkt_tab')
@@ -69,9 +69,6 @@ def calculate_conversation_stats(conversation, author_and_messages):
     month_most = max(month_counts.items(), key=lambda x: x[1])
     month_least = min(month_counts.items(), key=lambda x: x[1])
 
-    # Create conversation samples
-    themes_with_examples = extract_themes(max_conversation)
-
     return ConversationStats(
         total_messages=len(conversation),
         participant_count=len(author_and_messages.keys()),
@@ -84,8 +81,7 @@ def calculate_conversation_stats(conversation, author_and_messages):
         most_active_week=PeriodStats(period=week_most[0], count=week_most[1]),
         least_active_week=PeriodStats(period=week_least[0], count=week_least[1]),
         most_active_month=PeriodStats(period=month_most[0], count=month_most[1]),
-        least_active_month=PeriodStats(period=month_least[0], count=month_least[1]),
-        themes=themes_with_examples
+        least_active_month=PeriodStats(period=month_least[0], count=month_least[1])
     )
 
 def calculate_conversation_parts(conversation: List[Message], time_threshold=30*60):

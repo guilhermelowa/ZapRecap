@@ -60,23 +60,29 @@ def parse_whatsapp_chat(chat_text):
 
     dates.append(date)
     current_author, current_message = parse_message(message)
-    msg = Message(date=date, author=current_author, content=current_message)
-    conversation.append(msg)
-    author_and_messages[current_author] = [msg]
+    
+    # Skip if author is None
+    if current_author != "None":
+        msg = Message(date=date, author=current_author, content=current_message)
+        conversation.append(msg)
+        author_and_messages[current_author] = [msg]
 
     for line in lines[2:]:  # Process remaining lines
         if is_new_message(line):
-            msg = Message(date=date, author=current_author, content=current_message)
-            store_message(author_and_messages, msg)
-            conversation.append(msg)
+            if current_author != "None":  # Only process if author is not None
+                msg = Message(date=date, author=current_author, content=current_message)
+                store_message(author_and_messages, msg)
+                conversation.append(msg)
             date, message = parse_line(line)
             dates.append(date)
             current_author, current_message = parse_message(message)
         else:
             current_message += ' ' + line
             
-    msg = Message(date=date, author=current_author, content=current_message)
-    store_message(author_and_messages, msg)
-    conversation.append(msg)
+    # Handle last message
+    if current_author != "None":  # Only process if author is not None
+        msg = Message(date=date, author=current_author, content=current_message)
+        store_message(author_and_messages, msg)
+        conversation.append(msg)
     
     return dates, author_and_messages, conversation

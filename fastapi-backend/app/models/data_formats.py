@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 class Message(BaseModel):
     date: datetime
@@ -24,7 +24,12 @@ class ConversationStats(BaseModel):
     least_active_week: PeriodStats
     most_active_month: PeriodStats
     least_active_month: PeriodStats
+
+class ConversationThemesResponse(BaseModel):
     themes: Dict[str, str]
+
+class SimulatedMessageResponse(BaseModel):
+    simulated_message: str
 
 class HeatmapData(BaseModel):
     z: List[List[float]]          # message counts
@@ -47,3 +52,4 @@ class AnalysisResponse(BaseModel):
     heatmap_data: HeatmapData
     common_words: Dict[str, int]
     author_messages: Dict[str, List[Message]]
+    conversation_id: Optional[str] = None

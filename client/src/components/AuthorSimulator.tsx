@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { AnalysisResponse, Message } from '../types/apiTypes';
+import { AnalysisResponse, PremiumFeatures } from '../types/apiTypes';
 import { useTranslation } from 'react-i18next';
 import ReportButton from './ReportButton';
 
 interface AuthorSimulatorProps {
     metrics: AnalysisResponse;
+    onPremiumFeaturesReceived?: (features: PremiumFeatures) => void;
 }
 
-const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics }) => {
+const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFeaturesReceived }) => {
     const [selectedAuthor, setSelectedAuthor] = useState<string>('');
     const [prompt, setPrompt] = useState<string>('');
     const [response, setResponse] = useState<string>('');
@@ -26,7 +27,7 @@ const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics }) => {
                 throw new Error('No messages found for the selected author');
             }
 
-            const response = await fetch('http://localhost:8000/simulate-message', {
+            const response = await fetch('http://localhost:8000/premium-features', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -43,8 +44,13 @@ const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics }) => {
                 throw new Error('Failed to simulate message');
             }
 
-            const data = await response.json();
-            setResponse(data.message);
+            const data: PremiumFeatures = await response.json();
+            setResponse(data.simulated_message);
+            
+            // Pass the premium features up to parent component
+            if (onPremiumFeaturesReceived) {
+                onPremiumFeaturesReceived(data);
+            }
         } catch (error) {
             console.error('Error simulating message:', error);
             setResponse(error instanceof Error ? error.message : 'Error generating message. Please try again.');

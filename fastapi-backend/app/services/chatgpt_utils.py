@@ -5,6 +5,9 @@ import openai
 import tiktoken
 import re
 from app.models.data_formats import Message
+import logging
+
+logger = logging.getLogger(__name__)
 
 def detect_language(conversation: List[Message]) -> str:
     """
@@ -61,19 +64,22 @@ def extract_themes(conversation: List[Message]) -> Dict[str, str]:
     """
     Extract main themes from a conversation using ChatGPT
     """
+    if not conversation:
+        logger.warning("Empty conversation provided to extract_themes")
+        return {}
+        
+    logger.info(f"Extracting themes from conversation with {len(conversation)} messages")
     themes_with_examples = defaultdict(str)
     
-    # Initialize OpenAI client
-    client = openai.OpenAI()
-    
-    # Detect language
-    language = detect_language(conversation)
-    
-    # Create prompt for ChatGPT
-    prompt = create_prompt(conversation, language)
-    
-    # Call ChatGPT
     try:
+        client = openai.OpenAI()
+        # Detect language
+        language = detect_language(conversation)
+        
+        # Create prompt for ChatGPT
+        prompt = create_prompt(conversation, language)
+        
+        # Call ChatGPT
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
@@ -98,7 +104,7 @@ def extract_themes(conversation: List[Message]) -> Dict[str, str]:
 
         return dict(themes_with_examples)
     except Exception as e:
-        print(f"Error extracting themes: {str(e)}")
+        logger.error(f"Error in extract_themes: {str(e)}")
         return {}
 
 def extract_examples_from_themes(theme: str, language: str) -> Tuple[str, str]:

@@ -182,46 +182,6 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                     {' '}<b>{stats.least_active_week.count}</b> {t('stats.vacationTime')}
                 </p>
             </section>
-
-            <section id="theme-patterns" className="theme-patterns">
-                <h3>
-                    {t('stats.themesFromBusiestDay')}
-                    <ReportButton 
-                        sectionId="theme-patterns" 
-                        sectionName="Theme Patterns"
-                        contextData={stats}
-                    />
-                </h3>
-                <p>{t('stats.commonThemes')}</p>
-                <div style={{ 
-                    padding: '10px', 
-                    borderRadius: '5px',
-                    marginTop: '10px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                }}>
-                    {Object.entries(stats.themes).map(([theme, example], index) => (
-                        <div key={index} style={{ 
-                            marginBottom: '12px',
-                            padding: '8px 12px',
-                            borderRadius: '4px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}>
-                            <div>{theme}</div>
-                            {example && (
-                                <div style={{
-                                    marginTop: '4px',
-                                    marginLeft: '20px',
-                                    fontSize: '0.95em',
-                                    color: 'rgba(255, 255, 255, 0.8)'
-                                }}>
-                                    - {example}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </section>
         </div>
     );
 };

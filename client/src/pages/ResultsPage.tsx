@@ -2,15 +2,15 @@ import { useLocation } from 'react-router-dom';
 import { AnalysisResponse } from '../types/apiTypes';
 import Header from '../components/Header';
 import ConversationStats from '../components/ConversationStats';
-import PlotlyHeatmap from '../components/PlotlyHeatmap';
 import PlotlyBarCharts from '../components/PlotlyBarCharts';
-import AuthorSimulator from '../components/AuthorSimulator';
+import PlotlyHeatmap from '../components/PlotlyHeatmap';
+import PremiumContent from '../components/PremiumContent';
 import { useTranslation } from 'react-i18next';
+import SuggestionBox from '../components/SuggestionBox';
 
 const ResultsPage = () => {
   const location = useLocation();
   const { t } = useTranslation();
-  console.log('Location state:', location.state);
   
   if (!location.state) {
     return <div>No data available</div>;
@@ -23,11 +23,17 @@ const ResultsPage = () => {
       <div>
         <Header />
         <h1>{t('results.title')}</h1>
-        <PlotlyBarCharts metrics={result} />
         <h2>{t('results.messageStatistics')}</h2>
         <ConversationStats stats={result.conversation_stats} />
+        <PlotlyBarCharts metrics={result} />
         <PlotlyHeatmap heatmapData={result.heatmap_data} />
-        <AuthorSimulator metrics={result} />
+        <PremiumContent 
+          stats={result.conversation_stats}
+          metrics={result}
+        />
+        {result.conversation_id && (
+          <SuggestionBox conversationId={result.conversation_id} />
+        )}
       </div>
     );
   } catch (error) {

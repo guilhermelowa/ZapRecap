@@ -21,7 +21,6 @@ export interface ConversationStats {
   least_active_week: PeriodStats;
   most_active_month: PeriodStats;
   least_active_month: PeriodStats;
-  themes: { [theme: string]: string };
 }
 
 export interface WordMetrics {
@@ -64,6 +63,14 @@ export interface Message {
   date: Date;
 }
 
+export interface ConversationThemesResponse {
+  themes: { [theme: string]: string };
+}
+
+export interface SimulatedMessageResponse {
+  simulated_message: string;
+}
+
 export interface AnalysisResponse {
   heatmap_data: HeatmapData;
   conversation_stats: ConversationStats;
@@ -74,4 +81,5 @@ export interface AnalysisResponse {
   author_messages: {
     [author: string]: Message[];
   };
+  conversation_id?: string;
 }

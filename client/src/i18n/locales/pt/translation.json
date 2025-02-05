@@ -127,5 +127,28 @@
     "12": "Dezembro"
   },
   "messageActivityHeatmap": "Mapa de Calor de Mensagens",
-  "reportIssue": "Reportar Problema"
+  "reportIssue": "Reportar Problema",
+  "premium": {
+    "unlockFeatures": "🌟 Desbloqueie Recursos Premium",
+    "description": "Tenha acesso a análises avançadas e recursos com IA!",
+    "feature1": "🎨 Descubra temas de conversa analisados por IA",
+    "feature2": "🤖 Use nosso simulador de mensagens com IA",
+    "unlock": "Desbloquear Premium por",
+    "scanQRCode": "Escaneie o QR Code do Pix",
+    "waitingPayment": "Aguardando confirmação do pagamento...",
+    "price": "Recursos Premium - R$",
+    "pixCopyCola": "Pix Copia e Cola",
+    "copy": "Copiar",
+    "generatingPayment": "Gerando informações de pagamento..."
+  },
+  "suggestions": {
+    "title": "Sugira Novos Recursos de Análise",
+    "placeholder": "Que outras análises você gostaria de ver? Compartilhe suas ideias!",
+    "submit": "Enviar Sugestão",
+    "thankYou": "Obrigado pela sua sugestão!",
+    "error": "Falha ao enviar sugestão. Por favor, tente novamente."
+  },
+  "common": {
+    "submitting": "Enviando..."
+  }
 } 

@@ -53,3 +53,12 @@ class AnalysisResponse(BaseModel):
     common_words: Dict[str, int]
     author_messages: Dict[str, List[Message]]
     conversation_id: Optional[str] = None
+
+class ConversationThemesRequest(BaseModel):
+    conversation_id: str
+    model: str
+
+class SimulationRequest(BaseModel):
+    conversation: List[Message]
+    author: str
+    model: str

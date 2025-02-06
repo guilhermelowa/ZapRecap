@@ -1,5 +1,5 @@
 from collections import Counter, defaultdict
-from typing import List
+from typing import List, Dict
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -8,6 +8,7 @@ import re
 from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, HeatmapData, PeriodStats, Message
 from app.services.parsing_utils import parse_whatsapp_chat
 from app.services.chatgpt_utils import extract_themes, simulate_author_message
+from datetime import datetime
 
 # Download required NLTK data
 nltk.download('punkt_tab')
@@ -188,16 +189,20 @@ def get_word_metrics(author_and_messages):
         curse_words_frequency=dict(curse_words_frequency.most_common())
     )
 
-def calculate_all_metrics(chat_content: str) -> AnalysisResponse:
+def calculate_all_metrics(
+        dates: List[datetime],
+        author_and_messages: Dict,
+        conversation: List[Message],
+        content_hash: str
+    ) -> AnalysisResponse:
     """
-    Calculate all metrics for the chat content
+    Calculate all metrics for the parsed chat content
     """
-    dates, author_and_messages, conversation = parse_whatsapp_chat(chat_content)
-    
     return AnalysisResponse(
         conversation_stats=calculate_conversation_stats(conversation, author_and_messages),
         word_metrics=get_word_metrics(author_and_messages),
         heatmap_data=create_messages_heatmap(dates),
         common_words=get_most_common_words(author_and_messages),
-        author_messages=author_and_messages
+        author_messages=author_and_messages,
+        conversation_id=content_hash
     )

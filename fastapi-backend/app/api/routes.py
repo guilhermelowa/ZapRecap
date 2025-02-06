@@ -9,17 +9,19 @@ import os
 from dotenv import load_dotenv
 import logging
 import uuid
-from functools import lru_cache
 from app.core.config import get_settings, clear_settings_cache
 from app.utils.cache_manager import CacheManager
 from sqlalchemy.orm import Session
-from ..database import get_db, Suggestion, ParsedConversation
+from app.models.database_models import Suggestion, ParsedConversation
+from app.database import get_db
 from datetime import datetime, timedelta
 from ..auth.security import verify_token, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from ..auth.models import Admin
 from hashlib import sha256
 import json
 from sqlalchemy.exc import IntegrityError
+from app.services.parsing_utils import get_or_create_parsed_conversation
+import random
 
 # Load environment variables from .env file in development
 if os.getenv('ENVIRONMENT') != 'production':
@@ -35,6 +37,7 @@ class SimulationRequest(BaseModel):
     author: str
     prompt: str
     language: str = 'pt'
+    model: str
 
 class PaymentRequest(BaseModel):
     amount: float
@@ -61,6 +64,10 @@ class AdminLogin(BaseModel):
     username: str
     password: str
 
+class ConversationThemesRequest(BaseModel):
+    conversation_id: str
+    model: str
+
 # Use the client in your routes
 router = APIRouter()
 clear_settings_cache()
@@ -81,39 +88,12 @@ def message_to_dict(msg: Message) -> dict:
 async def analyze(request: Request, file: FileRequest, db: Session = Depends(get_db)):
     logger.info(f"Analyze endpoint hit with content length: {len(file.content)}")
     try:
-        content_hash = sha256(file.content.encode()).hexdigest()
+        # Get or create parsed conversation
+        dates, author_and_messages, conversation, content_hash = get_or_create_parsed_conversation(file.content, db)
         
-        parsed_conv = db.query(ParsedConversation).filter(
-            ParsedConversation.content_hash == content_hash
-        ).first()
+        # Calculate metrics using parsed data
+        result = calculate_all_metrics(dates, author_and_messages, conversation, content_hash)
         
-        if not parsed_conv:
-            dates, author_and_messages, conversation = parse_whatsapp_chat(file.content)
-            
-            # Convert Message objects to dictionaries before JSON serialization
-            parsed_conv = ParsedConversation(
-                content_hash=content_hash,
-                dates=json.dumps([d.isoformat() for d in dates]),
-                author_and_messages=json.dumps({
-                    author: [message_to_dict(msg) for msg in messages]
-                    for author, messages in author_and_messages.items()
-                }),
-                conversation=json.dumps([message_to_dict(msg) for msg in conversation])
-            )
-            
-            try:
-                db.add(parsed_conv)
-                db.commit()
-                db.refresh(parsed_conv)
-            except IntegrityError:
-                db.rollback()
-                parsed_conv = db.query(ParsedConversation).filter(
-                    ParsedConversation.content_hash == content_hash
-                ).first()
-        
-        result = calculate_all_metrics(file.content)
-        # Use content_hash as conversation identifier
-        result.conversation_id = content_hash
         logger.info("Analysis completed successfully")
         return result
     except Exception as e:
@@ -121,46 +101,25 @@ async def analyze(request: Request, file: FileRequest, db: Session = Depends(get
         raise
 
 @router.post("/conversation-themes", response_model=ConversationThemesResponse)
-async def get_conversation_themes(request: Request, file: FileRequest, db: Session = Depends(get_db)):
+async def get_conversation_themes(request: ConversationThemesRequest, db: Session = Depends(get_db)):
     try:
-        logger.info(f"Conversation themes endpoint hit with content length: {len(file.content)}")
+        logger.info(f"Conversation themes endpoint hit for \
+                    conversation: {request.conversation_id} \
+                    and model {request.model}")
         
-        content_hash = sha256(file.content.encode()).hexdigest()
         parsed_conv = db.query(ParsedConversation).filter(
-            ParsedConversation.content_hash == content_hash
+            ParsedConversation.content_hash == request.conversation_id
         ).first()
         
-        if parsed_conv:
-            # Load data from database
-            logger.info("Found existing conversation in database")
-            dates = [datetime.fromisoformat(d) for d in json.loads(parsed_conv.dates)]
-            author_and_messages = json.loads(parsed_conv.author_and_messages)
-            conversation = json.loads(parsed_conv.conversation)
-            logger.info(f"Loaded conversation with {len(conversation)} messages")
-        else:
-            # Parse and store new conversation
-            logger.info("Parsing new conversation")
-            dates, author_and_messages, conversation = parse_whatsapp_chat(file.content)
-            logger.info(f"Parsed conversation with {len(conversation)} messages")
+        if not parsed_conv:
+            raise HTTPException(status_code=404, detail="Conversation not found")
             
-            parsed_conv = ParsedConversation(
-                content_hash=content_hash,
-                dates=json.dumps([d.isoformat() for d in dates]),
-                author_and_messages=json.dumps(author_and_messages),
-                conversation=json.dumps(conversation)
-            )
-            
-            try:
-                db.add(parsed_conv)
-                db.commit()
-                db.refresh(parsed_conv)
-            except IntegrityError:
-                db.rollback()
+        conversation = [Message.model_validate(msg) for msg in json.loads(parsed_conv.conversation)]
+        logger.info(f"Loaded conversation with {len(conversation)} messages")
         
-        _, _, _, max_conversation, _ = calculate_conversation_parts(conversation)
-        logger.info(f"Max conversation length: {len(max_conversation) if max_conversation else 0}")
-        themes = extract_themes(max_conversation)
-        logger.info(f"Extracted themes: {themes}")
+        # Pass the model to extract_themes
+        themes = extract_themes(conversation, model=request.model)
+        logger.info(f"Extracted themes using model {request.model}: {themes}")
         
         if not themes:
             logger.warning("No themes were extracted")
@@ -172,13 +131,14 @@ async def get_conversation_themes(request: Request, file: FileRequest, db: Sessi
 
 @router.post("/simulate-message", response_model=SimulatedMessageResponse)
 async def simulate_message(request: SimulationRequest):
-    logger.info("Message simulation endpoint hit")
+    logger.info(f"Message simulation endpoint hit using model {request.model}")
     try:
         simulated_message = simulate_author_message(
             request.author,
             request.conversation,
             request.prompt,
-            request.language
+            request.language,
+            model=request.model
         )
         return SimulatedMessageResponse(simulated_message=simulated_message)
     except Exception as e:

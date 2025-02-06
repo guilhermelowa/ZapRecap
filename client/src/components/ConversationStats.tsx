@@ -3,27 +3,11 @@ import { ConversationStats as Stats } from '../types/apiTypes';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import ReportButton from './ReportButton';
+import styles from '../styles/components/ConversationStats.module.css';
 
 interface ConversationStatsProps {
     stats: Stats;
 }
-
-const styles = `
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-`;
-
-const styleSheet = document.createElement("style");
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
 
 const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
     const { t } = useTranslation();
@@ -44,9 +28,9 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
     };
 
     return (
-        <div className="stats-container" style={{ color: '#ffffff', padding: '20px' }}>
-            <section id="conversation-length" className="conversation-length">
-                <h3>
+        <div className="stats-container">
+            <section className={styles['stats-section']}>
+                <h3 className={styles['stats-title']}>
                     {t('stats.conversationPatterns')}
                     <ReportButton 
                         sectionId="conversation-length" 
@@ -110,20 +94,22 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                         {t('stats.conversationDefinition')}
                     </div>
                 )}
-                <p>
-                    {t('stats.averageConversationLength')} <b>{stats.average_length}</b> {t('stats.messages') + " "}
+                <p className={styles['stats-text']}>
+                    {t('stats.averageConversationLength')} 
+                    <span className={styles['stats-highlight']}>{stats.average_length}</span> 
+                    {t('stats.messages')}
                     {stats.average_length > 10 ? t('stats.chattersComment') : t('stats.shortSweetComment')}
                 </p>
-                <p>
-                    {t('stats.longestConversation')} <b>{stats.longest_conversation_length}</b> {t('stats.messages') + " "}
+                <p className={styles['stats-text']}>
+                    {t('stats.longestConversation')} <span className={styles['stats-highlight']}>{stats.longest_conversation_length}</span> {t('stats.messages') + " "}
                     {t('stats.startingOn')} {format(new Date(stats.longest_conversation_start), 'PPP')}{' '}
                     {t('stats.endingOn')} {format(new Date(stats.longest_conversation_end), 'PPP')}. 
                     {" " + t('stats.epicComment')}
                 </p>
             </section>
 
-            <section id="active-periods" className="active-periods">
-                <h3>
+            <section className={styles['stats-section']}>
+                <h3 className={styles['stats-title']}>
                     {t('stats.timePatterns')}
                     <ReportButton 
                         sectionId="active-periods" 
@@ -131,19 +117,19 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                         contextData={stats}
                     />
                 </h3>
-                <p>
+                <p className={styles['stats-text']}>
                     {weekdays[stats.most_active_weekday.period]} {t('stats.powerDay')}
-                    {' '}<b>{stats.most_active_weekday.count}</b> {t('stats.messagesLastYear')}
+                    {' '}<span className={styles['stats-highlight']}>{stats.most_active_weekday.count}</span> {t('stats.messagesLastYear')}
                 </p>
-                <p>
+                <p className={styles['stats-text']}>
                     {weekdays[stats.least_active_weekday.period]} {t('stats.quietDay') + " "}
-                    <b>{stats.least_active_weekday.count}</b>.
+                    <span className={styles['stats-highlight']}>{stats.least_active_weekday.count}</span>.
                     {" " + (stats.least_active_weekday.period === 1 ? t('stats.mondayBlues') : t('stats.takingBreak'))}
                 </p>
             </section>
 
-            <section id="monthly-patterns" className="monthly-patterns">
-                <h3>
+            <section className={styles['stats-section']}>
+                <h3 className={styles['stats-title']}>
                     {t('stats.monthlyReview')}
                     <ReportButton 
                         sectionId="monthly-patterns" 
@@ -151,21 +137,21 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                         contextData={stats}
                     />
                 </h3>
-                <p>
+                <p className={styles['stats-text']}>
                     {t(`months.${stats.most_active_month.period}`)} {t('stats.chattiestMonth')}
-                    {' '}<b>{stats.most_active_month.count}</b> {t('stats.messages')}! 
+                    {' '}<span className={styles['stats-highlight']}>{stats.most_active_month.count}</span> {t('stats.messages')}! 
                     {' ' + (stats.most_active_month.period >= 6 && stats.most_active_month.period <= 8 ? 
                     t('stats.summerVibes') : t('stats.normalVibes'))}
                 </p>
-                <p>
+                <p className={styles['stats-text']}>
                     {t(`months.${stats.least_active_month.period}`)} {t('stats.quietMonth')}
-                    {' '}<b>{stats.least_active_month.count}</b> {t('stats.messages')}. 
+                    {' '}<span className={styles['stats-highlight']}>{stats.least_active_month.count}</span> {t('stats.messages')}. 
                     {stats.least_active_month.period === 12 ? t('stats.holidayBreak') : t('stats.quietVibes')}
                 </p>
             </section>
 
-            <section id="weekly-insights" className="weekly-insights">
-                <h3>
+            <section className={styles['stats-section']}>
+                <h3 className={styles['stats-title']}>
                     {t('stats.weeklyRhythms')}
                     <ReportButton 
                         sectionId="weekly-insights" 
@@ -173,13 +159,13 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                         contextData={stats}
                     />
                 </h3>
-                <p>
-                    {t('stats.intenseWeek')} <b>{stats.most_active_week.period + 1}</b> {t('stats.wasIntense')}
-                    {' '}<b>{stats.most_active_week.count}</b> {t('stats.whatHappened')}
+                <p className={styles['stats-text']}>
+                    {t('stats.intenseWeek')} <span className={styles['stats-highlight']}>{stats.most_active_week.period + 1}</span> {t('stats.wasIntense')}
+                    {' '}<span className={styles['stats-highlight']}>{stats.most_active_week.count}</span> {t('stats.whatHappened')}
                 </p>
-                <p>
-                    {t('stats.intenseWeek')} <b>{stats.least_active_week.period + 1}</b> {t('stats.quietestWeek')}
-                    {' '}<b>{stats.least_active_week.count}</b> {t('stats.vacationTime')}
+                <p className={styles['stats-text']}>
+                    {t('stats.intenseWeek')} <span className={styles['stats-highlight']}>{stats.least_active_week.period + 1}</span> {t('stats.quietestWeek')}
+                    {' '}<span className={styles['stats-highlight']}>{stats.least_active_week.count}</span> {t('stats.vacationTime')}
                 </p>
             </section>
         </div>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ConversationStats as Stats, AnalysisResponse, ConversationThemesResponse } from '../types/apiTypes';
+import { ConversationStats as Stats, AnalysisResponse } from '../types/apiTypes';
 import ConversationThemes from './ConversationThemes';
 import AuthorSimulator from './AuthorSimulator';
 import { useTranslation } from 'react-i18next';
+import styles from '../styles/components/PremiumContent.module.css';
 
 interface PremiumContentProps {
     stats: Stats;
@@ -30,7 +31,6 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const hasInitialized = useRef(false);
     const { t } = useTranslation();
     const [selectedModel, setSelectedModel] = useState<string>(AVAILABLE_MODELS[0].value);
-    const [isGeneratingThemes, setIsGeneratingThemes] = useState<boolean>(false);
 
     const initializePayment = async () => {
         try {
@@ -109,28 +109,17 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
 
     if (isPaid) {
         return (
-            <div className="premium-content">
+            <div className={styles['premium-content']}>
                 <h2>{t('premium.sectionTitle')}</h2>
-                <div className="model-selector" style={{
-                    marginBottom: '20px',
-                    padding: '10px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                    borderRadius: '5px'
-                }}>
-                    <label htmlFor="model-select" style={{ marginRight: '10px' }}>
+                <div className={styles['model-selector']}>
+                    <label htmlFor="model-select" className={styles['model-label']}>
                         {t('premium.selectModel')}:
                     </label>
                     <select
                         id="model-select"
                         value={selectedModel}
                         onChange={(e) => setSelectedModel(e.target.value)}
-                        style={{
-                            padding: '5px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            color: 'white',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            borderRadius: '3px'
-                        }}
+                        className={styles['model-select']}
                     >
                         {AVAILABLE_MODELS.map(model => (
                             <option key={model.value} value={model.value}>
@@ -154,85 +143,41 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     }
 
     return (
-        <div className="premium-content-gate" style={{
-            padding: '20px',
-            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-            borderRadius: '10px',
-            margin: '20px 0'
-        }}>
+        <div className={styles['premium-content-gate']}>
             <h2>{t('premium.unlockFeatures')}</h2>
             <p>{t('premium.description')}</p>
-            <div className="premium-features" style={{
-                marginBottom: '20px'
-            }}>
+            <div className={styles['premium-features']}>
                 <p>{t('premium.feature1')}</p>
                 <p>{t('premium.feature2')}</p>
             </div>
             
-            <div className="payment-section" style={{
-                textAlign: 'center',
-                marginTop: '20px'
-            }}>
-                <h3 style={{ marginBottom: '20px' }}>{t('premium.price') + PRICE}</h3>
+            <div className={styles['payment-section']}>
+                <h3>{t('premium.price') + PRICE}</h3>
                 
-                <div className="pix-options" style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    gap: '20px',
-                    flexWrap: 'wrap'
-                }}>
-                    <div className="qr-code-section" style={{
-                        width: '200px'
-                    }}>
-                        <h4 style={{ marginBottom: '10px' }}>{t('premium.scanQRCode')}</h4>
+                <div className={styles['pix-options']}>
+                    <div className={styles['qr-code-section']}>
+                        <h4>{t('premium.scanQRCode')}</h4>
                         {pixQRCode && (
                             <img 
                                 src={pixQRCode} 
                                 alt="Pix QR Code"
-                                style={{
-                                    width: '200px',
-                                    height: '200px'
-                                }}
+                                className={styles['qr-code']}
                             />
                         )}
                     </div>
 
                     {pixCopyCola && (
-                        <div className="copy-cola-section" style={{
-                            width: '200px'
-                        }}>
-                            <h4 style={{ marginBottom: '10px' }}>{t('premium.pixCopyCola')}</h4>
-                            <div style={{
-                                position: 'relative',
-                                height: '200px'
-                            }}>
+                        <div className={styles['copy-cola-section']}>
+                            <h4>{t('premium.pixCopyCola')}</h4>
+                            <div className={styles['copy-cola-container']}>
                                 <textarea
                                     value={pixCopyCola}
                                     readOnly
-                                    style={{
-                                        width: '100%',
-                                        height: '89%',
-                                        padding: '10px',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                        color: 'white',
-                                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                                        borderRadius: '5px',
-                                        resize: 'none'
-                                    }}
+                                    className={styles['copy-cola-input']}
                                 />
                                 <button
                                     onClick={() => navigator.clipboard.writeText(pixCopyCola)}
-                                    style={{
-                                        position: 'absolute',
-                                        right: '10px',
-                                        bottom: '10px',
-                                        padding: '5px 10px',
-                                        backgroundColor: '#25d366',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '3px',
-                                        cursor: 'pointer'
-                                    }}
+                                    className={styles['copy-button']}
                                 >
                                     {t('premium.copy')}
                                 </button>
@@ -241,7 +186,7 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
                     )}
                 </div>
                 
-                <p style={{ marginTop: '20px' }}>
+                <p className={styles['payment-status']}>
                     {!paymentId 
                         ? t('premium.generatingPayment')
                         : t('premium.waitingPayment')

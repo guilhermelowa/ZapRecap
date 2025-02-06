@@ -1,0 +1,66 @@
+.theme-patterns {
+    background: var(--background-dark);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+    margin: var(--spacing-xl) 0;
+}
+
+.section-title {
+    color: var(--text-primary);
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.section-title span {
+    margin-right: var(--spacing-sm);
+}
+
+.generate-button {
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--whatsapp-green);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+
+.generate-button:disabled {
+    background: rgba(37, 211, 102, 0.5);
+    cursor: not-allowed;
+}
+
+.themes-description {
+    color: var(--text-secondary);
+    margin: var(--spacing-xl) 0;
+}
+
+.themes-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.theme-item {
+    background: var(--background-light);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.theme-title {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-bottom: var(--spacing-sm);
+}
+
+.theme-example {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    margin-top: var(--spacing-xs);
+} 

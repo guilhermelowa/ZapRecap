@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import styles from '../styles/components/SuggestionBox.module.css';
 
 interface SuggestionBoxProps {
   conversationId?: string;
@@ -42,101 +43,35 @@ const SuggestionBox: React.FC<SuggestionBoxProps> = ({ conversationId }) => {
   };
 
   return (
-    <section className="suggestion-box">
-      <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <section className={styles['suggestion-box']}>
+      <h2 className={styles['section-title']}>
         {t('suggestions.title')}
       </h2>
       
-      <div className="suggestion-controls">
+      <div className={styles['suggestion-controls']}>
         <form onSubmit={handleSubmit}>
           <textarea
             value={suggestion}
             onChange={(e) => setSuggestion(e.target.value)}
             placeholder={t('suggestions.placeholder')}
-            className="suggestion-input"
-            disabled={isSubmitting}
+            className={styles['suggestion-input']}
           />
-          
-          <div className="button-container">
-            <button
+          <div className={styles['button-container']}>
+            <button 
               type="submit"
               disabled={isSubmitting || !suggestion.trim()}
-              className="submit-button"
+              className={styles['submit-button']}
             >
-              {isSubmitting ? t('common.submitting') : t('suggestions.submit')}
+              {isSubmitting ? t('suggestions.submitting') : t('suggestions.submit')}
             </button>
-            {submitStatus === 'success' && (
-              <span className="status-message success">{t('suggestions.thankYou')}</span>
-            )}
-            {submitStatus === 'error' && (
-              <span className="status-message error">{t('suggestions.error')}</span>
+            {submitStatus !== 'idle' && (
+              <span className={`${styles['status-message']} ${styles[submitStatus]}`}>
+                {t(`suggestions.${submitStatus}`)}
+              </span>
             )}
           </div>
         </form>
       </div>
-
-      <style jsx>{`
-        .suggestion-box {
-          background: rgba(0, 0, 0, 0.2);
-          padding: 20px;
-          border-radius: 10px;
-          margin: 20px 0;
-        }
-
-        .suggestion-controls {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-          margin: 20px 0;
-        }
-
-        .suggestion-input {
-          width: 100%;
-          padding: 10px;
-          border-radius: 5px;
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          min-height: 100px;
-          resize: vertical;
-          margin-bottom: 15px;
-        }
-
-        .button-container {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .submit-button {
-          padding: 10px 20px;
-          border-radius: 5px;
-          background: #25d366;
-          color: white;
-          border: none;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .submit-button:disabled {
-          background: rgba(37, 211, 102, 0.5);
-          cursor: not-allowed;
-        }
-
-        .status-message {
-          padding: 5px 10px;
-          border-radius: 5px;
-          font-size: 0.9em;
-        }
-
-        .success {
-          color: #25d366;
-        }
-
-        .error {
-          color: #ff4444;
-        }
-      `}</style>
     </section>
   );
 };

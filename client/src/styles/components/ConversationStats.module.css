@@ -1,0 +1,30 @@
+.stats-section {
+    background: var(--background-dark);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+    margin: var(--spacing-xl) 0;
+    text-align: center;
+}
+
+.stats-title {
+    color: var(--whatsapp-green);
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.stats-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: var(--spacing-md) 0;
+}
+
+.stats-highlight {
+    color: var(--whatsapp-green);
+    font-size: 1.1em;
+    font-weight: 600;
+} 

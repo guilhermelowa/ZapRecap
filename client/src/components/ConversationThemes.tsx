@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReportButton from './ReportButton';
+import styles from '../styles/components/ConversationThemes.module.css';
 
 interface ConversationThemesProps {
     themes?: { [theme: string]: string };
@@ -48,37 +49,32 @@ const ConversationThemes: React.FC<ConversationThemesProps> = ({
     };
 
     return (
-        <section id="theme-patterns" className="theme-patterns" style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-            padding: '20px',
-            borderRadius: '10px',
-            margin: '20px 0'
-        }}>
-            <h3>
-                {t('premium.themesTitle')}
+        <section id="theme-patterns" className={styles['theme-patterns']}>
+            <h2 className={styles['section-title']}>
+                <span>{t('premium.themesTitle')}</span>
                 <ReportButton 
                     sectionId="theme-patterns" 
                     sectionName="Theme Patterns"
                     contextData={themes}
                 />
-            </h3>
+            </h2>
             <button 
                 onClick={handleGenerateThemes}
                 disabled={isLoading}
-                className="green-button"
+                className={styles['generate-button']}
             >
                 {isLoading ? t('premium.generating') : t('premium.generateThemes')}
             </button>
 
             {themes && Object.keys(themes).length > 0 && (
                 <>
-                    <p>{t('stats.commonThemes')}</p>
-                    <div className="themes-container">
+                    <p className={styles['themes-description']}>{t('stats.commonThemes')}</p>
+                    <div className={styles['themes-container']}>
                         {Object.entries(themes).map(([theme, example], index) => (
-                            <div key={index} className="theme-item">
-                                <div>{theme}</div>
+                            <div key={index} className={styles['theme-item']}>
+                                <div className={styles['theme-title']}>{theme}</div>
                                 {example && (
-                                    <div className="theme-example">
+                                    <div className={styles['theme-example']}>
                                         - {example}
                                     </div>
                                 )}

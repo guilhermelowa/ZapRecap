@@ -1,0 +1,27 @@
+:root {
+    /* Colors */
+    --whatsapp-green: #25d366;
+    --whatsapp-dark-green: #025C4C;
+    --background-dark: rgba(0, 0, 0, 0.2);
+    --background-light: rgba(255, 255, 255, 0.1);
+    --border-color: rgba(255, 255, 255, 0.2);
+    --text-primary: white;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-success: #25d366;
+    --text-error: #ff4444;
+
+    /* Spacing */
+    --spacing-xs: 5px;
+    --spacing-sm: 8px;
+    --spacing-md: 10px;
+    --spacing-lg: 15px;
+    --spacing-xl: 20px;
+
+    /* Border Radius */
+    --border-radius-sm: 5px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 10px;
+
+    /* Transitions */
+    --transition-default: all 0.2s ease;
+} 

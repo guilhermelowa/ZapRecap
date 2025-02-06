@@ -155,7 +155,10 @@
     "sectionTitle": "Premium Features",
     "generating": "Gerando...",
     "generateThemes": "Gerar Temas",
-    "noThemesYet": "Clique no botão acima para gerar os temas da conversa"
+    "noThemesYet": "Clique no botão acima para gerar os temas da conversa",
+    "genericError": "Ocorreu um erro ao processar seu pagamento. Por favor, tente novamente.",
+    "connectionError": "Não foi possível conectar ao serviço de pagamento. Por favor, verifique sua conexão com a internet.",
+    "serverError": "O serviço de pagamento está temporariamente indisponível. Por favor, tente novamente mais tarde."
   },
   "suggestions": {
     "title": "Sugira Novos Recursos de Análise",

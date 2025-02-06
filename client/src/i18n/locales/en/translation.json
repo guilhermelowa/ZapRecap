@@ -155,7 +155,10 @@
     "sectionTitle": "Premium Features",
     "generating": "Generating...",
     "generateThemes": "Generate Themes",
-    "noThemesYet": "Click the button above to generate conversation themes"
+    "noThemesYet": "Click the button above to generate conversation themes",
+    "genericError": "An error occurred while processing your payment. Please try again.",
+    "connectionError": "Unable to connect to payment service. Please check your internet connection.",
+    "serverError": "The payment service is currently unavailable. Please try again later."
   },
   "suggestions": {
     "title": "Suggest New Analysis Features",

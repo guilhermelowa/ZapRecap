@@ -107,4 +107,14 @@
 .payment-status {
     margin-top: var(--spacing-xl);
     color: var(--text-secondary);
+}
+
+.error-message {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: var(--text-error);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    margin: var(--spacing-md) 0;
+    text-align: center;
 } 

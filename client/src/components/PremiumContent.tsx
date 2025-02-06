@@ -31,6 +31,7 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const hasInitialized = useRef(false);
     const { t } = useTranslation();
     const [selectedModel, setSelectedModel] = useState<string>(AVAILABLE_MODELS[0].value);
+    const [error, setError] = useState<string | null>(null);
 
     const initializePayment = async () => {
         try {
@@ -45,13 +46,29 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
             setPixQRCode(`data:image/png;base64,${data.qr_code}`);
             setPixCopyCola(data.copy_cola);
             setPaymentId(data.payment_id);
             checkPaymentStatus(String(data.payment_id));
         } catch (error) {
-            console.error('Error creating payment:', error);
+            let errorMessage = t('premium.genericError');
+            
+            if (error instanceof Error) {
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = t('premium.connectionError');
+                } else if (error.message.includes('HTTP error!')) {
+                    errorMessage = t('premium.serverError');
+                }
+            }
+            
+            // Add error state to show to user
+            setError(errorMessage);
+            console.error('Payment initialization error:', error);
         }
     };
 
@@ -146,6 +163,14 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
         <div className={styles['premium-content-gate']}>
             <h2>{t('premium.unlockFeatures')}</h2>
             <p>{t('premium.description')}</p>
+            
+            {/* Add error display */}
+            {error && (
+                <div className={styles['error-message']}>
+                    {error}
+                </div>
+            )}
+            
             <div className={styles['premium-features']}>
                 <p>{t('premium.feature1')}</p>
                 <p>{t('premium.feature2')}</p>

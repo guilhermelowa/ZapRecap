@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Request, Depends, Security, Query
+from pydantic import BaseModel, Field
 from app.services.text_analyzer import calculate_all_metrics, parse_whatsapp_chat, calculate_conversation_parts, extract_themes
 from app.services.chatgpt_utils import simulate_author_message
 from app.models.data_formats import Message, ConversationThemesResponse, SimulatedMessageResponse
@@ -30,18 +30,18 @@ if os.getenv('ENVIRONMENT') != 'production':
 logger = logging.getLogger(__name__)
 
 class FileRequest(BaseModel):
-    content: str
+    content: str = Field(..., min_length=1)
 
 class SimulationRequest(BaseModel):
     conversation: List[Message]
-    author: str
-    prompt: str
-    language: str = 'pt'
-    model: str
+    author: str = Field(..., min_length=1)
+    prompt: str = Field(..., min_length=1)
+    language: str = Field(default='pt')
+    model: str = Field(...)
 
 class PaymentRequest(BaseModel):
-    amount: float
-    description: str
+    amount: float = Field(..., gt=0)
+    description: str = Field(..., min_length=1)
 
 class PaymentResponse(BaseModel):
     payment_id: str
@@ -85,20 +85,23 @@ def message_to_dict(msg: Message) -> dict:
     }
 
 @router.post("/analyze")
-async def analyze(request: Request, file: FileRequest, db: Session = Depends(get_db)):
+async def analyze(
+    request: Request, 
+    file: FileRequest, 
+    db: Session = Depends(get_db)
+):
     logger.info(f"Analyze endpoint hit with content length: {len(file.content)}")
     try:
-        # Get or create parsed conversation
-        dates, author_and_messages, conversation, content_hash = get_or_create_parsed_conversation(file.content, db)
-        
-        # Calculate metrics using parsed data
-        result = calculate_all_metrics(dates, author_and_messages, conversation, content_hash)
-        
-        logger.info("Analysis completed successfully")
+        dates, author_and_messages, conversation, content_hash = (
+            get_or_create_parsed_conversation(file.content, db)
+        )
+        result = calculate_all_metrics(
+            dates, author_and_messages, conversation, content_hash
+        )
         return result
     except Exception as e:
         logger.error(f"Error during analysis: {str(e)}")
-        raise
+        raise HTTPException(status_code=500, detail="Error analyzing conversation")
 
 @router.post("/conversation-themes", response_model=ConversationThemesResponse)
 async def get_conversation_themes(request: ConversationThemesRequest, db: Session = Depends(get_db)):
@@ -149,51 +152,55 @@ async def simulate_message(request: SimulationRequest):
 async def create_pix_payment(payment: PaymentRequest):
     try:
         logger.info(f"Creating payment for amount: {payment.amount}")
-        # Verify SDK initialization
         if not mp:
-            logger.error("MercadoPago SDK not initialized")
-            raise HTTPException(status_code=500, detail="Payment service not initialized")
+            raise HTTPException(
+                status_code=503, 
+                detail="Payment service unavailable"
+            )
             
         request_options = mercadopago.config.RequestOptions()
         request_options.custom_headers = {
             'X-Idempotency-Key': str(uuid.uuid4()),
         }
         
+        # Move sensitive data to environment variables or settings
         payment_data = {
             "transaction_amount": payment.amount,
             "description": payment.description,
             "payment_method_id": "pix",
             "payer": {
-                "email": "guiga994@gmail.com",
-                "first_name": "Guilherme",
-                "last_name": "Wanderley",
+                "email": settings.PAYER_EMAIL,
+                "first_name": settings.PAYER_FIRST_NAME,
+                "last_name": settings.PAYER_LAST_NAME,
                 "identification": {
-                    "type": "CPF",
-                    "number": "01668100533"
+                    "type": settings.PAYER_ID_TYPE,
+                    "number": settings.PAYER_ID_NUMBER
                 },
-                "address": {
-                    "zip_code": "44077090",
-                    "street_name": "Rua Saracura",
-                    "street_number": "622",
-                    "neighborhood": "Santa Mônica",
-                    "city": "Feira de Santana",
-                    "federal_unit": "BA"
-                }
+                "address": settings.PAYER_ADDRESS
             }
         }
         
         payment_result = mp.payment().create(payment_data, request_options)
+        if "response" not in payment_result:
+            raise HTTPException(
+                status_code=500, 
+                detail="Invalid payment service response"
+            )
+            
         payment_result = payment_result["response"]
-        logger.info(f"Created payment with ID: {payment_result['id']}")
-        
         return PaymentResponse(
             payment_id=str(payment_result["id"]),
             qr_code=payment_result["point_of_interaction"]["transaction_data"]["qr_code_base64"],
             copy_cola=payment_result["point_of_interaction"]["transaction_data"]["qr_code"]
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error creating payment: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to process payment"
+        )
 
 @router.get("/check-payment-status/{payment_id}", response_model=PaymentStatus)
 async def check_payment_status(payment_id: str):
@@ -226,31 +233,36 @@ def create_suggestion(
 
 @router.get("/admin/suggestions", response_model=List[dict])
 def list_suggestions(
-    status: str = None,
-    days: int = None,
+    status: str | None = None,
+    days: int | None = Query(default=None, ge=1, le=365),
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    username: str = Security(verify_token)
 ):
-    query = db.query(Suggestion)
-    
-    if status:
-        query = query.filter(Suggestion.status == status)
-    
-    if days:
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
-        query = query.filter(Suggestion.timestamp >= cutoff_date)
-    
-    suggestions = query.all()
-    return [
-        {
-            "id": s.id,
-            "suggestion": s.suggestion,
-            "conversation_id": s.conversation_id,
-            "timestamp": s.timestamp,
-            "status": s.status
-        }
-        for s in suggestions
-    ]
+    try:
+        query = db.query(Suggestion)
+        
+        if status:
+            if status not in ["pending", "approved", "rejected"]:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Invalid status value"
+                )
+            query = query.filter(Suggestion.status == status)
+        
+        if days:
+            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            query = query.filter(Suggestion.timestamp >= cutoff_date)
+        
+        suggestions = query.all()
+        return [suggestion.to_dict() for suggestion in suggestions]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing suggestions: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve suggestions"
+        )
 
 @router.put("/admin/suggestions/{suggestion_id}")
 def update_suggestion_status(
@@ -268,13 +280,39 @@ def update_suggestion_status(
     return {"status": "success"}
 
 @router.post("/login", response_model=Token)
-def login(login_data: AdminLogin, db: Session = Depends(get_db)):
-    admin = db.query(Admin).filter(Admin.username == login_data.username).first()
-    if not admin or not verify_password(login_data.password, admin.hashed_password):
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
-    
-    access_token = create_access_token(
-        data={"sub": admin.username},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+async def login(
+    login_data: AdminLogin, 
+    db: Session = Depends(get_db)
+):
+    try:
+        admin = db.query(Admin).filter(
+            Admin.username == login_data.username
+        ).first()
+        
+        if not admin or not verify_password(
+            login_data.password, 
+            admin.hashed_password
+        ):
+            raise HTTPException(
+                status_code=401,
+                detail="Incorrect username or password"
+            )
+        
+        access_token = create_access_token(
+            data={"sub": admin.username},
+            expires_delta=timedelta(
+                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+            )
+        )
+        return {
+            "access_token": access_token, 
+            "token_type": "bearer"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during login: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Login process failed"
+        )

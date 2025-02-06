@@ -98,6 +98,15 @@
     "5": "Friday",
     "6": "Saturday"
   },
+  "weekdays-short": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
+  },
   "charts": {
     "messageDistributionHigh": "📊 Let's see who's been keeping the chat alive! 🗣️",
     "messageDistributionLow": "📊 Let's see your conversation history! 🗣️",

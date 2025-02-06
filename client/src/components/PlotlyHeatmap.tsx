@@ -28,6 +28,15 @@ interface PlotlyHeatmapProps {
 const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
     const { t } = useTranslation();
 
+    // Calculate the aspect ratio based on the data dimensions
+    // 7 rows (days) and ~52 columns (weeks)
+    const aspectRatio = 7 / 52;
+    // Use a larger portion of the viewport width (95% instead of 90%)
+    const width = typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.95, 1300) : 1024;
+    // Calculate height to maintain square cells
+    const height = width * aspectRatio;
+
+
     const data: PlotlyHeatmapData[] = [{
         ...heatmapData,
         type: 'heatmap',
@@ -74,13 +83,13 @@ const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
                     data={data}
                     layout={{
                         ...createLayout(heatmapData, t),
-                        width: typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.9, 1200) : 1024,
-                        height: 500,
+                        width: width,
+                        height: height + 100, // Add some padding for labels
                         margin: { t: 30, l: 50, r: 50, b: 60 }
                     }}
                     style={{
                         width: '100%',
-                        height: '500px',
+                        height: `${height + 100}px`,
                         margin: 0,
                         padding: 0
                     }}

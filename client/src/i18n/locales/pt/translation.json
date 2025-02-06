@@ -112,6 +112,15 @@
     "5": "Sexta-feira",
     "6": "Sábado"
   },
+  "weekdays-short": {
+    "0": "Dom",
+    "1": "Seg",
+    "2": "Ter",
+    "3": "Qua",
+    "4": "Qui",
+    "5": "Sex",
+    "6": "Sáb"
+  },
   "months": {
     "1": "Janeiro",
     "2": "Fevereiro",

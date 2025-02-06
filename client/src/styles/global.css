@@ -121,6 +121,20 @@ body {
   align-items: center;
 }
 
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  /* filter: brightness(1) invert(0); */
+  /* mix-blend-mode: multiply;  This can help blend the background  */
+}
+
 .whatsapp-header h1 {
   color: white;
   font-size: 3.5rem;

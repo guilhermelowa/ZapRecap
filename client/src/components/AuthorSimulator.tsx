@@ -6,9 +6,10 @@ import ReportButton from './ReportButton';
 interface AuthorSimulatorProps {
     metrics: AnalysisResponse;
     onPremiumFeaturesReceived?: (features: PremiumFeatures) => void;
+    selectedModel: string;
 }
 
-const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFeaturesReceived }) => {
+const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFeaturesReceived, selectedModel }) => {
     const [selectedAuthor, setSelectedAuthor] = useState<string>('');
     const [prompt, setPrompt] = useState<string>('');
     const [response, setResponse] = useState<string>('');
@@ -36,7 +37,8 @@ const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFea
                     conversation: metrics.author_messages[selectedAuthor],
                     author: selectedAuthor,
                     prompt: prompt,
-                    language: 'pt'
+                    language: 'pt',
+                    model: selectedModel,
                 }),
             });
 

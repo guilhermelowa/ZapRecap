@@ -11,6 +11,16 @@ interface PremiumContentProps {
 
 const PRICE = 0.99;
 
+const AVAILABLE_MODELS = [
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+    { value: 'gpt-4', label: 'GPT-4' },
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o-mini' },
+    { value: 'o1', label: 'o1' },
+    { value: 'o3-mini', label: 'o3-mini' },
+];
+
+
 const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const [isPaid, setIsPaid] = useState<boolean>(false);
     const [pixQRCode, setPixQRCode] = useState<string>('');
@@ -19,6 +29,8 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const [themes, setThemes] = useState<{ [theme: string]: string }>();
     const hasInitialized = useRef(false);
     const { t } = useTranslation();
+    const [selectedModel, setSelectedModel] = useState<string>(AVAILABLE_MODELS[0].value);
+    const [isGeneratingThemes, setIsGeneratingThemes] = useState<boolean>(false);
 
     const initializePayment = async () => {
         try {
@@ -95,49 +107,48 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
         console.log('isPaid value updated:', isPaid);
     }, [isPaid]);
 
-    useEffect(() => {
-        if (isPaid) {
-            const fetchThemes = async () => {
-                try {
-                    const whatsappContent = localStorage.getItem('whatsapp_chat_content');
-                    if (!whatsappContent) {
-                        console.error('No chat content found in localStorage');
-                        return;
-                    }
-                    console.log('Fetching themes with content length:', whatsappContent.length);
-
-                    const response = await fetch('http://localhost:8000/conversation-themes', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ 
-                            content: whatsappContent
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('Error response:', response.status, errorText);
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const data: ConversationThemesResponse = await response.json();
-                    console.log('Received themes:', data.themes);
-                    setThemes(data.themes);
-                } catch (error) {
-                    console.error('Error fetching themes:', error);
-                }
-            };
-            fetchThemes();
-        }
-    }, [isPaid]);
-
     if (isPaid) {
         return (
             <div className="premium-content">
-                <ConversationThemes themes={themes} />
-                <AuthorSimulator metrics={metrics} />
+                <h2>{t('premium.sectionTitle')}</h2>
+                <div className="model-selector" style={{
+                    marginBottom: '20px',
+                    padding: '10px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '5px'
+                }}>
+                    <label htmlFor="model-select" style={{ marginRight: '10px' }}>
+                        {t('premium.selectModel')}:
+                    </label>
+                    <select
+                        id="model-select"
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                        style={{
+                            padding: '5px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            color: 'white',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            borderRadius: '3px'
+                        }}
+                    >
+                        {AVAILABLE_MODELS.map(model => (
+                            <option key={model.value} value={model.value}>
+                                {model.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <ConversationThemes 
+                    themes={themes} 
+                    conversationId={metrics.conversation_id}
+                    selectedModel={selectedModel}
+                    onThemesGenerated={setThemes}
+                />
+                <AuthorSimulator 
+                    metrics={metrics} 
+                    selectedModel={selectedModel}
+                />
             </div>
         );
     }

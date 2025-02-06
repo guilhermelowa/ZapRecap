@@ -104,7 +104,7 @@ body {
 
 .whatsapp-header {
   position: relative;
-  background-color: #25D366;
+  background-color: rgba(37, 211, 102, 0.5);
   padding: 2rem;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -124,4 +124,20 @@ body {
   font-size: 3.5rem;
   margin: 0;
   font-weight: bold;
+}
+
+.green-button {
+  background-color: #25d366;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.25s;
+}
+.green-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

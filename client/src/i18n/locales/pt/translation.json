@@ -138,6 +138,8 @@
   "messageActivityHeatmap": "Mapa de Calor de Mensagens",
   "reportIssue": "Reportar Problema",
   "premium": {
+    "themesTitle": "🎨 Temas da Conversa",
+    "commonThemes": "De acordo com a análise, os temas mais comuns são:",
     "unlockFeatures": "🌟 Desbloqueie Recursos Premium",
     "description": "Tenha acesso a análises avançadas e recursos com IA!",
     "feature1": "🎨 Descubra temas de conversa analisados por IA",
@@ -148,10 +150,16 @@
     "price": "Recursos Premium - R$",
     "pixCopyCola": "Pix Copia e Cola",
     "copy": "Copiar",
-    "generatingPayment": "Gerando informações de pagamento..."
+    "generatingPayment": "Gerando informações de pagamento...",
+    "selectModel": "Selecione o Modelo de IA",
+    "sectionTitle": "Premium Features",
+    "generating": "Gerando...",
+    "generateThemes": "Gerar Temas",
+    "noThemesYet": "Clique no botão acima para gerar os temas da conversa"
   },
   "suggestions": {
     "title": "Sugira Novos Recursos de Análise",
+
     "placeholder": "Que outras análises você gostaria de ver? Compartilhe suas ideias!",
     "submit": "Enviar Sugestão",
     "thankYou": "Obrigado pela sua sugestão!",

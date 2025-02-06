@@ -138,6 +138,8 @@
   "messageActivityHeatmap": "Message Activity Heatmap",
   "reportIssue": "Report Issue",
   "premium": {
+    "themesTitle": "🎨 Conversation Themes",
+    "commonThemes": "According to the analysis, the most common themes are:",
     "unlockFeatures": "🌟 Unlock Premium Features",
     "description": "Get access to advanced analysis and AI-powered features!",
     "feature1": "🎨 Discover conversation themes analyzed by AI",
@@ -148,7 +150,12 @@
     "price": "Premium Features - $",
     "pixCopyCola": "Pix Copia e Cola",
     "copy": "Copy",
-    "generatingPayment": "Generating payment information..."
+    "generatingPayment": "Generating payment information...",
+    "selectModel": "Select AI Model",
+    "sectionTitle": "Premium Features",
+    "generating": "Generating...",
+    "generateThemes": "Generate Themes",
+    "noThemesYet": "Click the button above to generate conversation themes"
   },
   "suggestions": {
     "title": "Suggest New Analysis Features",

@@ -83,3 +83,14 @@ export interface AnalysisResponse {
   };
   conversation_id?: string;
 }
+
+export interface ConversationThemesRequest {
+  conversation_id: string;
+  model: string;
+}
+
+export interface SimulationRequest {
+  conversation: Message[];
+  author: string;
+  model: string;
+}

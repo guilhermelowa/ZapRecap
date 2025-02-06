@@ -50,11 +50,8 @@ const FileUpload: FC = () => {
 
     reader.onload = async (e) => {
       const content = e.target?.result as string;
-      console.log('Sending request to analyze endpoint...');
-      console.log('Content length:', content.length);
       
       try {
-        console.log('Making API call to:', 'http://localhost:8000/analyze');
         const response = await axios.post('http://localhost:8000/analyze', {
           content: content
         }, {
@@ -63,7 +60,6 @@ const FileUpload: FC = () => {
           }
         });
         
-        console.log('Received response:', response.data);
         navigate('/results', { 
           state: {
              result: response.data

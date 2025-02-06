@@ -106,17 +106,10 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
             initializePayment();
         }
 
-        // For testing: Show premium content after 5 seconds
-        const timer = setTimeout(() => {
-            setIsPaid(true);
-            console.log('isPaid value:', isPaid);
-        }, 5000);
-
         return () => {
             if (paymentId) {
                 clearInterval(Number(paymentId));
             }
-            clearTimeout(timer); // Clean up the timer
         };
     }, []);
 

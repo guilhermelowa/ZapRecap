@@ -1,0 +1,28 @@
+repos:
+-   repo: https://github.com/psf/black
+    rev: 23.12.1  # Use the latest version
+    hooks:
+    -   id: black
+        language_version: python3
+        stages: [pre-commit]
+        args: [--check]
+        pass_filenames: true
+
+-   repo: local
+    hooks:
+    -   id: python-tests
+        name: Python Tests
+        entry: powershell.exe -Command "cd fastapi-backend; .\venv\Scripts\activate; python -m pytest tests/"
+        language: system
+        pass_filenames: false
+        always_run: true
+        types: [python]
+        stages: [pre-commit]
+
+    -   id: python-lint
+        name: Python Lint
+        entry: powershell.exe -Command "cd fastapi-backend; .\venv\Scripts\activate; cd ..; python -m flake8 fastapi-backend/"
+        language: system
+        pass_filenames: true
+        types: [python]
+        stages: [pre-commit]

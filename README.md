@@ -1,6 +1,6 @@
-# WhatsApp Conversation Analyzer
+# ZapRecap
 
-A web application that helps you analyze your WhatsApp conversations with detailed metrics, statistics, and AI-powered insights.
+A WhatsApp chat analyzer built with FastAPI and React.
 
 ## Features
 
@@ -11,6 +11,80 @@ A web application that helps you analyze your WhatsApp conversations with detail
 - 🎭 Message simulation based on participant styles (Premium)
 - 🌐 Multi-language support (English and Portuguese)
 
+## Development Setup
+
+### Prerequisites
+- Python 3.8 or higher
+- Git
+- Node.js and npm (for the frontend)
+
+### Backend Setup
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd ZapRecap
+```
+
+2. Run the setup script:
+
+For Unix/Linux/Mac:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+For Windows (PowerShell):
+```powershell
+.\setup.ps1
+```
+
+This will:
+- Create a virtual environment
+- Install all dependencies
+- Set up pre-commit hooks for testing and linting
+
+### Pre-commit Hooks
+
+The project uses pre-commit hooks to ensure code quality. Before each commit:
+- All tests will be run
+- Python code will be linted with flake8
+
+If any tests fail or linting issues are found, the commit will be aborted.
+
+### Manual Testing
+
+To run tests manually:
+
+```bash
+cd fastapi-backend
+python -m pytest tests/
+```
+
+To run linting manually:
+
+```bash
+cd fastapi-backend
+python -m flake8
+```
+
+### Running the Application
+
+1. Start the backend:
+```bash
+cd fastapi-backend
+uvicorn app.main:app --reload
+```
+
+2. Start the frontend (in a separate terminal):
+```bash
+cd client
+npm install
+npm run dev
+```
+
+The application will be available at http://localhost:5173
+
 ## Tech Stack
 
 - **Frontend**: React + TypeScript + Vite
@@ -18,67 +92,11 @@ A web application that helps you analyze your WhatsApp conversations with detail
 - **AI Integration**: OpenAI GPT models
 - **Data Analysis**: NLTK, Pandas, NumPy
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18+)
-- Python (v3.12+)
-- pip
-- Git
-
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/yourusername/whatsapp-conversation-analyzer.git
-cd whatsapp-conversation-analyzer
-```
-
-2. Set up the frontend:
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
-3. Set up the backend (preferably use a virtual environment):
-
-```bash
-cd fastapi-backend
-python -m venv venv
-source venv/bin/activate # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app/main.py
-```
-
-### Running the application
-
-1. Run the backend:
-
-```bash
-cd fastapi-backend
-source venv/bin/activate # On Windows: venv\Scripts\activate
-uvicorn app.main:app --reload
-```
-
-2. Run the frontend:
-
-```bash
-cd client
-npm run dev
-```
-
-3. Access the application at `http://localhost:5173`
-
 ## Project Structure
 
 - `client/`: Vite-powered React frontend
 - `fastapi-backend/`: FastAPI backend
 - `README.md`: This file
-
 
 ## Contributing
 

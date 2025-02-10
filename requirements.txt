@@ -1,5 +1,6 @@
-FastAPI
+fastapi
 uvicorn
+gunicorn
 pydantic
 openai==1.59.8
 langdetect==1.0.9

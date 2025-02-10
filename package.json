@@ -11,6 +11,6 @@
     "dev": "cd client && npm run dev"
   },
   "engines": {
-    "node": "23.x"
+    "node": "22.x"
   }
 } 

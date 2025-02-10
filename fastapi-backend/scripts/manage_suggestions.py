@@ -7,6 +7,7 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 
+
 def print_menu():
     print("\n=== Suggestions Management ===")
     print("1. List all suggestions")
@@ -16,11 +17,12 @@ def print_menu():
     print("5. Exit")
     return input("Choose an option: ")
 
+
 def list_suggestions(status=None):
     query = session.query(Suggestion)
     if status:
         query = query.filter(Suggestion.status == status)
-    
+
     suggestions = query.all()
     for s in suggestions:
         print(f"\nID: {s.id}")
@@ -29,10 +31,11 @@ def list_suggestions(status=None):
         print(f"Timestamp: {s.timestamp}")
         print("-" * 50)
 
+
 def update_status():
     suggestion_id = input("Enter suggestion ID: ")
     new_status = input("Enter new status (pending/approved/rejected): ")
-    
+
     suggestion = session.query(Suggestion).filter(Suggestion.id == suggestion_id).first()
     if suggestion:
         suggestion.status = new_status
@@ -40,6 +43,7 @@ def update_status():
         print("Status updated successfully!")
     else:
         print("Suggestion not found!")
+
 
 def delete_suggestion():
     suggestion_id = input("Enter suggestion ID to delete: ")
@@ -50,6 +54,7 @@ def delete_suggestion():
         print("Suggestion deleted successfully!")
     else:
         print("Suggestion not found!")
+
 
 if __name__ == "__main__":
     while True:
@@ -65,4 +70,4 @@ if __name__ == "__main__":
         elif choice == "5":
             sys.exit(0)
         else:
-            print("Invalid option!") 
+            print("Invalid option!")

@@ -15,10 +15,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # Initialize FastAPI
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
-)
+app = FastAPI(title=settings.PROJECT_NAME, openapi_url="/openapi.json")
 
 # Add Security Headers Middleware
 app.add_middleware(SecurityHeadersMiddleware)
@@ -37,10 +34,12 @@ app.add_middleware(
 # Log startup
 logger.info("Starting FastAPI application...")
 
+
 @app.get("/")
 def read_root():
     logger.info("Root endpoint hit")
     return {"message": "Welcome to the FastAPI Text Analyzer"}
+
 
 @app.get("/test")
 def test_prints():
@@ -49,7 +48,8 @@ def test_prints():
     print("Test print 2")
     return {"message": "Check your console for prints"}
 
-# Register routes
+
+# Register routes without prefix
 logger.info("Registering API routes...")
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router)
 logger.info("API routes registered successfully")

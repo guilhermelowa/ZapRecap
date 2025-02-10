@@ -1,10 +1,9 @@
 from sqlalchemy import Column, String, DateTime, Integer
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from datetime import datetime
 
 Base = declarative_base()
 
-Base = declarative_base()
 
 class Suggestion(Base):
     __tablename__ = "suggestions"
@@ -15,6 +14,7 @@ class Suggestion(Base):
     timestamp = Column(DateTime, default=datetime.now())
     status = Column(String, default="pending")
 
+
 class ParsedConversation(Base):
     __tablename__ = "parsed_conversations"
 
@@ -23,4 +23,4 @@ class ParsedConversation(Base):
     dates = Column(String)  # JSON string of dates
     author_and_messages = Column(String)  # JSON string of messages by author
     conversation = Column(String)  # JSON string of all messages
-    timestamp = Column(DateTime, default=datetime.utcnow) 
+    timestamp = Column(DateTime, default=datetime.utcnow)

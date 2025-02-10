@@ -7,6 +7,7 @@ from cleanup_parsed_conversations import cleanup_old_conversations
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def backup_job():
     try:
         logger.info("Starting daily backup...")
@@ -15,6 +16,7 @@ def backup_job():
     except Exception as e:
         logger.error(f"Backup failed: {str(e)}")
 
+
 def cleanup_job():
     try:
         logger.info("Starting conversation cleanup...")
@@ -22,6 +24,7 @@ def cleanup_job():
         logger.info("Cleanup completed successfully")
     except Exception as e:
         logger.error(f"Cleanup failed: {str(e)}")
+
 
 # Schedule backup for 3 AM every day
 schedule.every().day.at("03:00").do(backup_job)
@@ -33,4 +36,4 @@ if __name__ == "__main__":
     logger.info("Backup scheduler started")
     while True:
         schedule.run_pending()
-        time.sleep(60) 
+        time.sleep(60)

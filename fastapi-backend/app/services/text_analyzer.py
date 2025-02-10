@@ -5,57 +5,82 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import numpy as np
 import re
-from app.models.data_formats import AnalysisResponse, ConversationStats, WordMetrics, HeatmapData, PeriodStats, Message
-from app.services.parsing_utils import parse_whatsapp_chat
-from app.services.chatgpt_utils import extract_themes, simulate_author_message
+from app.models.data_formats import (
+    AnalysisResponse,
+    ConversationStats,
+    WordMetrics,
+    HeatmapData,
+    PeriodStats,
+    Message,
+)
 from datetime import datetime
 
 # Download required NLTK data
-nltk.download('punkt_tab')
-nltk.download('punkt')
-nltk.download('stopwords')
+nltk.download("punkt_tab")
+nltk.download("punkt")
+nltk.download("stopwords")
 
 # Get Portuguese stop words
-stop_words = set(stopwords.words('portuguese'))
+stop_words = set(stopwords.words("portuguese"))
 
 # Add custom stop words
-custom_stop_words = {'pra', 'tá', 'q', 'tb', 'né', 'tô', 'ta', 'to', 'mídia', 'oculta'}
+custom_stop_words = {"pra", "tá", "q", "tb", "né", "tô", "ta", "to", "mídia", "oculta"}
 stop_words.update(custom_stop_words)
-curse_words = {'porra', 'caralho', 'merda', 'foda', 'fodase', 'foda-se', 'puta', 'putas', 'putinha', 'putinhas', 'putao'}
+curse_words = {
+    "porra",
+    "caralho",
+    "merda",
+    "foda",
+    "fodase",
+    "foda-se",
+    "puta",
+    "putas",
+    "putinha",
+    "putinhas",
+    "putao",
+}
+
 
 def create_messages_heatmap(dates) -> HeatmapData:
     # Initialize 7x53 matrix
     matrix = [[0] * 53 for _ in range(7)]
-    dates_matrix = [[''] * 53 for _ in range(7)]
+    dates_matrix = [[""] * 53 for _ in range(7)]
 
     # Count messages
     for date in dates:
         weekday = date.weekday()
         week = date.isocalendar()[1] - 1  # 0-52
         matrix[weekday][week] += 1
-        dates_matrix[weekday][week] = date.strftime('%d/%m/%Y')
-    
+        dates_matrix[weekday][week] = date.strftime("%d/%m/%Y")
+
     # Initialize vmin and vmax
     vmin = 0
     vmax = 0
-    
+
     # Normalize values
     all_values = [v for row in matrix for v in row if v > 0]
     vmin = float(np.percentile(all_values, 5))
     vmax = float(np.percentile(all_values, 95))
-    
+
     return HeatmapData(
         z=matrix,
-        x=[f'W{i+1}' for i in range(53)],
-        y=['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        x=[f"W{i + 1}" for i in range(53)],
+        y=["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
         dates=dates_matrix,
         zmin=vmin,
-        zmax=vmax
+        zmax=vmax,
     )
+
 
 def calculate_conversation_stats(conversation, author_and_messages):
     # Calculate weekday, week, and month statistics
-    weekday_counts, week_counts, month_counts, max_conversation, conversation_lenghts = calculate_conversation_parts(conversation)
+    (
+        weekday_counts,
+        week_counts,
+        month_counts,
+        max_conversation,
+        conversation_lenghts,
+    ) = calculate_conversation_parts(conversation)
 
     # Calculate average
     avg_length = sum(conversation_lenghts) / len(conversation_lenghts)
@@ -63,10 +88,10 @@ def calculate_conversation_stats(conversation, author_and_messages):
     # Find most/least active periods with counts
     weekday_most = max(weekday_counts.items(), key=lambda x: x[1])
     weekday_least = min(weekday_counts.items(), key=lambda x: x[1])
-    
+
     week_most = max(week_counts.items(), key=lambda x: x[1])
     week_least = min(week_counts.items(), key=lambda x: x[1])
-    
+
     month_most = max(month_counts.items(), key=lambda x: x[1])
     month_least = min(month_counts.items(), key=lambda x: x[1])
 
@@ -82,14 +107,15 @@ def calculate_conversation_stats(conversation, author_and_messages):
         most_active_week=PeriodStats(period=week_most[0], count=week_most[1]),
         least_active_week=PeriodStats(period=week_least[0], count=week_least[1]),
         most_active_month=PeriodStats(period=month_most[0], count=month_most[1]),
-        least_active_month=PeriodStats(period=month_least[0], count=month_least[1])
+        least_active_month=PeriodStats(period=month_least[0], count=month_least[1]),
     )
 
-def calculate_conversation_parts(conversation: List[Message], time_threshold=30*60):
+
+def calculate_conversation_parts(conversation: List[Message], time_threshold=30 * 60):
     # Initialize counters
     weekday_counts = {i: 0 for i in range(7)}  # 0-6: Mon-Sun
-    week_counts = {i: 0 for i in range(53)}    # 0-52 weeks
-    month_counts = {i: 0 for i in range(1, 13)} # 1-12 months
+    week_counts = {i: 0 for i in range(53)}  # 0-52 weeks
+    month_counts = {i: 0 for i in range(1, 13)}  # 1-12 months
 
     current_conversation = []
     conversation_lenghts = []
@@ -102,7 +128,7 @@ def calculate_conversation_parts(conversation: List[Message], time_threshold=30*
         month_counts[msg.date.month] += 1
 
         # Calculate time difference with next message
-        time_diff = (conversation[i+1].date - msg.date).total_seconds()
+        time_diff = (conversation[i + 1].date - msg.date).total_seconds()
         if time_diff > time_threshold:
             if len(current_conversation) > len(max_conversation):
                 max_conversation = current_conversation.copy()
@@ -115,20 +141,28 @@ def calculate_conversation_parts(conversation: List[Message], time_threshold=30*
     if len(current_conversation) > len(max_conversation):
         max_conversation = current_conversation.copy()
 
-    return weekday_counts, week_counts, month_counts, max_conversation, conversation_lenghts
+    return (
+        weekday_counts,
+        week_counts,
+        month_counts,
+        max_conversation,
+        conversation_lenghts,
+    )
+
 
 # Function to clean and tokenize text
 def process_text(text):
     # Convert to lowercase and remove special characters
-    text = re.sub(r'[^\w\s]', '', text)
-    
+    text = re.sub(r"[^\w\s]", "", text)
+
     # Tokenize
     words = word_tokenize(text)
-    
+
     # Remove stop words and short words
     words = [word for word in words if word not in stop_words]
-    
+
     return words
+
 
 def get_most_common_words(author_and_messages, top_n=20):
     # Process all messages
@@ -146,12 +180,13 @@ def get_most_common_words(author_and_messages, top_n=20):
     most_common = word_counts.most_common(top_n)
     return {word: count for word, count in most_common}
 
+
 def get_word_metrics(author_and_messages):
     """
     Analyze word metrics for each author in the chat
     We analyze word frequency and curse words usage
     """
-    
+
     messages_per_author = {}
     message_lengths = {}
     curse_words_count = {}
@@ -165,7 +200,7 @@ def get_word_metrics(author_and_messages):
             messages_per_author[author] = len(messages)
             total_length = sum(len(msg.content) for msg in messages)
             message_lengths[author] = total_length / len(messages)
-            
+
             # curse_words calculations
             curse_words_count[author] = 0
             for msg in messages:
@@ -186,15 +221,16 @@ def get_word_metrics(author_and_messages):
         average_message_length=message_lengths,
         curse_words_per_author=sorted_curse_words,
         curse_words_by_author=dict(curse_words_by_author),
-        curse_words_frequency=dict(curse_words_frequency.most_common())
+        curse_words_frequency=dict(curse_words_frequency.most_common()),
     )
 
+
 def calculate_all_metrics(
-        dates: List[datetime],
-        author_and_messages: Dict,
-        conversation: List[Message],
-        content_hash: str
-    ) -> AnalysisResponse:
+    dates: List[datetime],
+    author_and_messages: Dict,
+    conversation: List[Message],
+    content_hash: str,
+) -> AnalysisResponse:
     """
     Calculate all metrics for the parsed chat content
     """
@@ -204,5 +240,5 @@ def calculate_all_metrics(
         heatmap_data=create_messages_heatmap(dates),
         common_words=get_most_common_words(author_and_messages),
         author_messages=author_and_messages,
-        conversation_id=content_hash
+        conversation_id=content_hash,
     )

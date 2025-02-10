@@ -1,1 +1,1 @@
-web: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker 
+web: cd client && npm run build && cd ../fastapi-backend && gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker

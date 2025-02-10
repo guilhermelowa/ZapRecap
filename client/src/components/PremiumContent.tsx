@@ -17,8 +17,6 @@ const AVAILABLE_MODELS = [
     { value: 'gpt-4', label: 'GPT-4' },
     { value: 'gpt-4o', label: 'GPT-4o' },
     { value: 'gpt-4o-mini', label: 'GPT-4o-mini' },
-    { value: 'o1', label: 'o1' },
-    { value: 'o3-mini', label: 'o3-mini' },
 ];
 
 

@@ -7,6 +7,7 @@ from app.core.logging_config import configure_logging
 import logging
 from fastapi.staticfiles import StaticFiles
 import os
+from starlette.responses import FileResponse
 
 # Configure logging before creating the FastAPI app
 configure_logging()
@@ -44,11 +45,16 @@ app.mount("/static", StaticFiles(directory=static_directory), name="static")
 # Log startup
 logger.info("Starting FastAPI application...")
 
+# Define the path to your frontend production build.
+FRONTEND_DIST_PATH = os.path.join(os.path.dirname(__file__), "../static")
+
 
 @app.get("/")
-def read_root():
-    logger.info("Root endpoint hit")
-    return {"message": "Welcome to the FastAPI Text Analyzer"}
+async def serve_index():
+    """
+    Serve the index.html from the production build of your React app.
+    """
+    return FileResponse(os.path.join(FRONTEND_DIST_PATH, "index.html"))
 
 
 @app.get("/test")

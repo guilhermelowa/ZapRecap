@@ -19,11 +19,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if settings.ENVIRONMENT == "production":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
-        # Content Security Policy
+        # Updated Content Security Policy
         csp_directives = [
             "default-src 'self'",
             "img-src 'self' data: https:",
-            "script-src 'self'",
+            "script-src 'self' blob:",
             "style-src 'self' 'unsafe-inline'",
             "connect-src 'self'",
             "frame-ancestors 'none'",

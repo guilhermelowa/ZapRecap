@@ -50,7 +50,11 @@ def test_conversation_themes_endpoint():
 def test_root_endpoint():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome to the FastAPI Text Analyzer"}
+    # Check that the response is HTML (usually "text/html" in Content-Type)
+    content_type = response.headers.get("content-type")
+    assert content_type is not None and "text/html" in content_type.lower()
+    # For example, ensure that the index.html contains a <div id="root">
+    assert '<div id="root">' in response.text
 
 
 def test_cors_headers():

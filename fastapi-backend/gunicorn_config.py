@@ -39,12 +39,12 @@ limit_request_field_size = 4096  # Reduced from 8190
 
 
 # Memory limits per worker (in MB)
-def when_ready(server):
-    # Set memory limit for workers
-    try:
-        import resource
-
-        memory_limit = 256 * 1024 * 1024  # 256MB per worker
-        resource.setrlimit(resource.RLIMIT_AS, (memory_limit, memory_limit))
-    except ImportError:
-        pass
+# def when_ready(server):
+#     # Set memory limit for workers
+#     try:
+#         import resource
+#         # Increase memory limit per worker to 384MB. Adjust as needed.
+#         memory_limit = 384 * 1024 * 1024
+#         resource.setrlimit(resource.RLIMIT_AS, (memory_limit, memory_limit))
+#     except ImportError:
+#         pass

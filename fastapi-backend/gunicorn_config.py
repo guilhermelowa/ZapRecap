@@ -24,7 +24,7 @@ proc_name = "zap-recap"
 
 # Memory management
 worker_tmp_dir = "/tmp"  # Use disk instead of RAM (/dev/shm)
-preload_app = False  # Don't preload to save memory
+preload_app = True  # Enable preloading to benefit from copy-on-write, reducing memory usage
 
 # Prevent memory leaks
 max_requests_jitter = 50

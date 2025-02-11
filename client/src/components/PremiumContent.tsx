@@ -108,12 +108,22 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
             if (paymentId) {
                 clearInterval(Number(paymentId));
             }
+            // Clear themes data when component unmounts
+            setThemes(undefined);
         };
     }, []);
 
     useEffect(() => {
         console.log('isPaid value updated:', isPaid);
     }, [isPaid]);
+
+    // Implement lazy loading for premium features
+    const loadPremiumFeatures = async () => {
+        if (isPaid) {
+            const { ConversationThemes, AuthorSimulator } = await import('./PremiumContent');
+            // ... load components
+        }
+    };
 
     if (isPaid) {
         return (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Plotly from 'plotly.js-dist';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { HeatmapData } from '../types/apiTypes';
@@ -27,6 +27,16 @@ interface PlotlyHeatmapProps {
 
 const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
     const { t } = useTranslation();
+    const plotRef = useRef<any>(null);
+
+    // Cleanup function to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (plotRef.current) {
+                Plotly.purge(plotRef.current);
+            }
+        };
+    }, []);
 
     // Calculate the aspect ratio based on the data dimensions
     // 7 rows (days) and ~52 columns (weeks)
@@ -80,6 +90,7 @@ const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
                 boxSizing: 'border-box'
             }}>
                 <Plot
+                    ref={plotRef}
                     data={data}
                     layout={{
                         ...createLayout(heatmapData, t),

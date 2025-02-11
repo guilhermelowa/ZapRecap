@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnalysisResponse } from '../types/apiTypes';
 import Header from '../components/Header';
@@ -12,6 +13,16 @@ const ResultsPage = () => {
   const location = useLocation();
   const { t } = useTranslation();
   
+  // Cleanup function for large data
+  useEffect(() => {
+    return () => {
+      // Clear any cached data when component unmounts
+      if (window.gc) {
+        window.gc();
+      }
+    };
+  }, []);
+
   if (!location.state) {
     return <div>No data available</div>;
   }

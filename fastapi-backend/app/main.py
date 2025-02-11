@@ -54,7 +54,8 @@ async def serve_index():
     """
     Serve the index.html from the production build of your React app.
     """
-    return FileResponse(os.path.join(FRONTEND_DIST_PATH, "index.html"))
+    index_file_path = os.path.join(os.getcwd(), "static", "index.html")
+    return FileResponse(index_file_path)
 
 
 @app.get("/test")

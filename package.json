@@ -8,7 +8,8 @@
   "scripts": {
     "build:client": "cd client && npm install && npm run build && cp -r dist ../fastapi-backend/static",
     "start": "cd client && npm run preview",
-    "dev": "cd client && npm run dev"
+    "dev": "cd client && npm run dev",
+    "heroku-postbuild": "npm run build:client"
   },
   "engines": {
     "node": "22.x"

@@ -5,6 +5,7 @@ from app.core.config import get_settings
 from app.middleware.security import SecurityHeadersMiddleware
 from app.core.logging_config import configure_logging
 import logging
+from fastapi.staticfiles import StaticFiles
 
 # Configure logging before creating the FastAPI app
 configure_logging()
@@ -30,6 +31,9 @@ app.add_middleware(
     expose_headers=["Content-Length"],
     max_age=3600,
 )
+
+# Mount the static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Log startup
 logger.info("Starting FastAPI application...")

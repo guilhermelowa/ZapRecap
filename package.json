@@ -6,7 +6,7 @@
     "client"
   ],
   "scripts": {
-    "build": "cd client && npm install && npm run build",
+    "build:client": "cd client && npm install && npm run build && cp -r dist ../fastapi-backend/static",
     "start": "cd client && npm run preview",
     "dev": "cd client && npm run dev"
   },

@@ -10,6 +10,9 @@ nltk==3.9.1
 mercadopago
 python-jose==3.3.0
 pandas==2.2.3
+tiktoken==0.8.0
+pydantic-settings
+passlib==1.7.4
 
 # Development dependencies
 pytest>=7.4.3

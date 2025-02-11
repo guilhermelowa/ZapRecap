@@ -1,5 +1,8 @@
-# Server socket
-bind = "0.0.0.0:8000"
+import os
+
+# Bind to the port defined in the $PORT environment variable if available, otherwise default to 8000
+port = os.environ.get("PORT", "8000")
+bind = f"0.0.0.0:{port}"
 
 # Worker processes - reduce number of workers to save memory
 workers = 2  # Instead of cpu_count() * 2 + 1

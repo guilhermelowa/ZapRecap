@@ -4,6 +4,12 @@ gunicorn
 pydantic
 openai==1.59.8
 langdetect==1.0.9
+python-dotenv
+SQLAlchemy==2.0.37
+nltk==3.9.1
+mercadopago
+python-jose==3.3.0
+pandas==2.2.3
 
 # Development dependencies
 pytest>=7.4.3

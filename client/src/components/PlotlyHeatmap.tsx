@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import Plotly from 'plotly.js-dist';
-import createPlotlyComponent from 'react-plotly.js/factory';
+import createPlotlyComponent from '../fixPlotlyComponent';
+import Plotly from 'plotly.js';
 import { HeatmapData } from '../types/apiTypes';
 import { createLayout } from '../styles/plotlyLayouts';
 import { useTranslation } from 'react-i18next';

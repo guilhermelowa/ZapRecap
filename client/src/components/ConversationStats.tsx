@@ -95,9 +95,9 @@ const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
                     </div>
                 )}
                 <p className={styles['stats-text']}>
-                    {t('stats.averageConversationLength')} 
+                    {t('stats.averageConversationLength') + ' '} 
                     <span className={styles['stats-highlight']}>{stats.average_length}</span> 
-                    {t('stats.messages')}
+                    {' ' + t('stats.messages') + ' '}
                     {stats.average_length > 10 ? t('stats.chattersComment') : t('stats.shortSweetComment')}
                 </p>
                 <p className={styles['stats-text']}>

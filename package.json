@@ -12,5 +12,11 @@
   },
   "engines": {
     "node": "22.x"
+  },
+  "devDependencies": {
+    "vite-tsconfig-paths": "^5.1.4"
+  },
+  "dependencies": {
+    "stream-browserify": "^3.0.0"
   }
-} 
+}

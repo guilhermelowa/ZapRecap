@@ -1,8 +1,11 @@
+import createPlotlyComponent from '../fixPlotlyComponent';
+import Plotly from 'plotly.js';
 import React from 'react';
-import Plot from 'react-plotly.js';
 import { AnalysisResponse } from '../types/apiTypes';
 import { useTranslation } from 'react-i18next';
 import ReportButton from './ReportButton';
+
+const Plot = createPlotlyComponent(Plotly);
 
 interface PlotlyBarChartsProps {
   metrics: AnalysisResponse;

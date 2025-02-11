@@ -72,6 +72,7 @@ fastapi-backend/*.diff
 fastapi-backend/backups/
 fastapi-backend/suggestions.db
 fastapi-backend/backups/suggestions/*.csv
+fastapi-backend/static/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

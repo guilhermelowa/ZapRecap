@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { ConversationStats as Stats, AnalysisResponse } from '../types/apiTypes';
 import ConversationThemes from './ConversationThemes';
 import AuthorSimulator from './AuthorSimulator';
@@ -19,7 +20,6 @@ const AVAILABLE_MODELS = [
     { value: 'gpt-4o-mini', label: 'GPT-4o-mini' },
 ];
 
-
 const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const [isPaid, setIsPaid] = useState<boolean>(false);
     const [pixQRCode, setPixQRCode] = useState<string>('');
@@ -33,22 +33,19 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
 
     const initializePayment = async () => {
         try {
-            const response = await fetch('http://localhost:8000/create-pix-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            // Use Axios for API call with a relative URL
+            const { data } = await axios.post(
+                '/create-pix-payment',
+                {
                     amount: PRICE,
                     description: 'WhatsApp Recap Premium Features'
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
             setPixQRCode(`data:image/png;base64,${data.qr_code}`);
             setPixCopyCola(data.copy_cola);
             setPaymentId(data.payment_id);
@@ -73,8 +70,8 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const checkPaymentStatus = async (id: string) => {
         const checkStatus = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/check-payment-status/${id}`);
-                const data = await response.json();
+                // Use Axios for API call with a relative URL
+                const { data } = await axios.get(`/check-payment-status/${id}`);
                 
                 if (data.status === 'approved') {
                     setIsPaid(true);
@@ -88,7 +85,7 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
             }
         };
 
-        // Check every 5 seconds until payment is confirmed
+        // Check every 2 seconds until payment is confirmed
         const interval = setInterval(async () => {
             const isConfirmed = await checkStatus();
             if (isConfirmed) {

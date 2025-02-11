@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import ReportButton from './ReportButton';
 import styles from '../styles/components/ConversationThemes.module.css';
@@ -24,22 +25,20 @@ const ConversationThemes: React.FC<ConversationThemesProps> = ({
         
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:8000/conversation-themes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
+            // Use Axios for API call with a relative URL
+            const { data } = await axios.post(
+                '/conversation-themes',
+                { 
                     conversation_id: conversationId,
                     model: selectedModel
-                })
-            });
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
             onThemesGenerated(data.themes);
         } catch (error) {
             console.error('Error generating themes:', error);

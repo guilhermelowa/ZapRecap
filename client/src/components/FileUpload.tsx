@@ -52,7 +52,7 @@ const FileUpload: FC = () => {
       const content = e.target?.result as string;
       
       try {
-        const response = await axios.post('http://localhost:8000/analyze', {
+        const response = await axios.post('/analyze', {
           content: content
         }, {
           headers: {

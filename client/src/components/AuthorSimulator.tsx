@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { AnalysisResponse, PremiumFeatures } from '../types/apiTypes';
 import { useTranslation } from 'react-i18next';
 import ReportButton from './ReportButton';
@@ -29,34 +30,35 @@ const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFea
                 throw new Error('No messages found for the selected author');
             }
 
-            const response = await fetch('http://localhost:8000/premium-features', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            // Use Axios for API call with a relative URL
+            const { data } = await axios.post(
+                '/premium-features',
+                {
                     conversation: metrics.author_messages[selectedAuthor],
                     author: selectedAuthor,
                     prompt: prompt,
                     language: 'pt',
                     model: selectedModel,
-                }),
-            });
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
 
-            if (!response.ok) {
-                throw new Error('Failed to simulate message');
-            }
-
-            const data: PremiumFeatures = await response.json();
             setResponse(data.simulated_message);
-            
-            // Pass the premium features up to parent component
+
             if (onPremiumFeaturesReceived) {
                 onPremiumFeaturesReceived(data);
             }
         } catch (error) {
             console.error('Error simulating message:', error);
-            setResponse(error instanceof Error ? error.message : 'Error generating message. Please try again.');
+            setResponse(
+                error instanceof Error
+                    ? error.message
+                    : 'Error generating message. Please try again.'
+            );
         } finally {
             setIsLoading(false);
         }

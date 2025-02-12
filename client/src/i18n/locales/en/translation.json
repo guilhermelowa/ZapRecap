@@ -35,7 +35,9 @@
     "curseWordsHighFrequency": "🔥 Here's the hall of fame for spicy vocabulary! 🏆",
     "curseWordsLowFrequency": "🔥 A peek at the spicier side of your chat! 🌶️",
     "title": "Recap Results",
-    "messageStatistics": "Message Statistics"
+    "messageStatistics": "Message Statistics",
+    "shareMessage": "Check out your conversation analysis on ZapRecap!",
+    "share": "Share"
   },
   "stats": {
     "averageWords": "Average Words per Message",

@@ -35,7 +35,9 @@
     "curseWordsHighFrequency": "🔥 O hall da fama do vocabulário obsceno 🏆",
     "curseWordsLowFrequency": "🔥 Uma espiadinha no lado obsceno do chat! 🌶️",
     "title": "Resultados do Recap",
-    "messageStatistics": "Estatísticas de Mensagens"
+    "messageStatistics": "Estatísticas de Mensagens",
+    "shareMessage": "Confira sua retrospectiva de conversas no ZapRecap!",
+    "share": "Compartilhar"
   },
   "charts": {
     "messageDistributionHigh": "📊 Vamos ver quem está mantendo o papo vivo! 🗣️",

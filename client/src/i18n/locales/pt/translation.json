@@ -167,7 +167,8 @@
     "submit": "Enviar Sugestão",
     "thankYou": "Obrigado pela sua sugestão!",
     "error": "Falha ao enviar sugestão. Por favor, tente novamente.",
-    "submitting": "Enviando..."
+    "submitting": "Enviando...",
+    "success": "Sugestão enviada!"
   },
   "common": {
     "submitting": "Enviando..."

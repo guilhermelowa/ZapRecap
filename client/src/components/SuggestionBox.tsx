@@ -68,7 +68,7 @@ const SuggestionBox: React.FC<SuggestionBoxProps> = ({ conversationId }) => {
             </button>
             {submitStatus !== 'idle' && (
               <span className={`${styles['status-message']} ${styles[submitStatus]}`}>
-                {t(`suggestions.${submitStatus}`)}
+                {t('suggestions.success')}
               </span>
             )}
           </div>

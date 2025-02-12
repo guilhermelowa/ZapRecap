@@ -167,7 +167,8 @@
     "submit": "Submit Suggestion",
     "thankYou": "Thank you for your suggestion!",
     "error": "Failed to submit suggestion. Please try again.",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "success": "Suggestion submitted!"
   },
   "common": {
     "submitting": "Submitting..."

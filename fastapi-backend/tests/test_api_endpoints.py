@@ -142,3 +142,23 @@ def test_simulate_message_model_selection(sample_simulation_data):
         client.post("/simulate-message", json=sample_simulation_data)
 
         mock_simulate.assert_called_once_with(ANY, ANY, ANY, ANY, model="gpt-4o-mini")
+
+
+def test_create_suggestion_success():
+    suggestion_payload = {
+        "suggestion": "I think we should improve the UI.",
+        "conversation_id": "conversation123",
+        "timestamp": "2023-10-21T15:00:00Z",
+    }
+    response = client.post("/suggestions", json=suggestion_payload)
+    assert response.status_code == 200
+    json_data = response.json()
+    assert "status" in json_data
+    assert json_data["status"] == "success"
+
+
+def test_create_suggestion_invalid_payload():
+    # Sending an invalid payload (missing required fields: "suggestion" and "timestamp")
+    invalid_payload = {"conversation_id": "conversation123"}
+    response = client.post("/suggestions", json=invalid_payload)
+    assert response.status_code == 422  # Expecting a validation error

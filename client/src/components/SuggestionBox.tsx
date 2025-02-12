@@ -20,7 +20,7 @@ const SuggestionBox: React.FC<SuggestionBoxProps> = ({ conversationId }) => {
     try {
       // Use Axios for API call with a relative URL
       const { data } = await axios.post(
-        '/api/suggestions',
+        '/suggestions',
         {
           suggestion,
           conversationId: conversationId || null,

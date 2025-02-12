@@ -1,12 +1,14 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 from functools import lru_cache
-from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
     # API Settings
     PROJECT_NAME: str = "Zap Recap"
+
+    # OpenAI key
+    OPENAI_API_KEY: str
 
     # Security
     SECRET_KEY: str
@@ -42,7 +44,7 @@ class Settings(BaseSettings):
     PAYER_ID_NUMBER: str
     PAYER_ADDRESS: dict
 
-    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
 @lru_cache()

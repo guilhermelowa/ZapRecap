@@ -14,6 +14,7 @@ tiktoken==0.8.0
 pydantic-settings
 passlib==1.7.4
 psycopg2-binary==2.9.10
+bcrypt==4.0.1
 
 # Development dependencies
 pytest>=7.4.3

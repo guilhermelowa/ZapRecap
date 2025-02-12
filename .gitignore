@@ -74,6 +74,8 @@ fastapi-backend/suggestions.db
 fastapi-backend/backups/suggestions/*.csv
 fastapi-backend/static/*
 
+test/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

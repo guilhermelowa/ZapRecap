@@ -152,7 +152,12 @@ async def get_conversation_themes(
 
 @router.post("/simulate-message", response_model=SimulatedMessageResponse)
 async def simulate_message(request: SimulationRequest):
-    logger.info(f"Message simulation endpoint hit using model {request.model}")
+    logger.info(
+        f"Message simulation endpoint hit using \
+                model {request.model}\
+                prompt {request.prompt}\
+                author {request.author}"
+    )
     try:
         # Ensure conversation messages are proper Message objects.
         conversation = [
@@ -160,8 +165,8 @@ async def simulate_message(request: SimulationRequest):
             for msg in request.conversation
         ]
         simulated_message = simulate_author_message(
-            request.author,
             conversation,
+            request.author,
             request.prompt,
             request.language,
             model=request.model,

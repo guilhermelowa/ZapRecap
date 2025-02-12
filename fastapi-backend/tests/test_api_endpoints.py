@@ -112,8 +112,8 @@ def test_simulate_message_endpoint_success(sample_simulation_data):
         assert response.status_code == 200
         assert "simulated_message" in response.json()
         mock_simulate.assert_called_once_with(
-            sample_simulation_data["author"],
             [Message.model_validate(msg) for msg in sample_simulation_data["conversation"]],
+            sample_simulation_data["author"],
             sample_simulation_data["prompt"],
             sample_simulation_data["language"],
             model=sample_simulation_data["model"],

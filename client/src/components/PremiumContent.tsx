@@ -108,11 +108,6 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
         };
     }, []);
 
-    useEffect(() => {
-        console.log('isPaid value updated:', isPaid);
-    }, [isPaid]);
-
-    // Implement lazy loading for premium features
     const loadPremiumFeatures = async () => {
         if (isPaid) {
             const { ConversationThemes, AuthorSimulator } = await import('./PremiumContent');

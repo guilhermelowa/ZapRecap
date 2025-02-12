@@ -32,7 +32,7 @@ const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFea
 
             // Use Axios for API call with a relative URL
             const { data } = await axios.post(
-                '/premium-features',
+                '/simulate-message',
                 {
                     conversation: metrics.author_messages[selectedAuthor],
                     author: selectedAuthor,

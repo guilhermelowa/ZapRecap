@@ -1,7 +1,10 @@
 from fastapi.testclient import TestClient
 from app.main import app
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, ANY
+from typing import List
+from pydantic import BaseModel
+from app.models.data_formats import Message
 
 client = TestClient(app)
 
@@ -76,3 +79,66 @@ def test_cors_headers():
     ]
     assert "access-control-allow-methods" in response.headers
     assert "access-control-allow-headers" in response.headers
+
+
+class SimulationRequest(BaseModel):
+    conversation: List[dict]
+    author: str
+    prompt: str
+    language: str
+    model: str
+
+
+@pytest.fixture
+def sample_simulation_data():
+    return {
+        "conversation": [
+            {"date": "2025-01-18T20:31:00", "author": "Alice", "content": "Hey there!"},
+            {"date": "2025-01-18T20:32:00", "author": "Bob", "content": "Hi Alice, how are you?"},
+        ],
+        "author": "Alice",
+        "prompt": "Respond to Bob's question",
+        "language": "en",
+        "model": "gpt-4o",
+    }
+
+
+def test_simulate_message_endpoint_success(sample_simulation_data):
+    with patch("app.api.routes.simulate_author_message") as mock_simulate:
+        mock_simulate.return_value = "I'm doing well, thanks for asking!"
+
+        response = client.post("/simulate-message", json=sample_simulation_data)
+
+        assert response.status_code == 200
+        assert "simulated_message" in response.json()
+        mock_simulate.assert_called_once_with(
+            sample_simulation_data["author"],
+            [Message.model_validate(msg) for msg in sample_simulation_data["conversation"]],
+            sample_simulation_data["prompt"],
+            sample_simulation_data["language"],
+            model=sample_simulation_data["model"],
+        )
+
+
+def test_simulate_message_endpoint_invalid_data():
+    invalid_data = {
+        "conversation": [],
+        "author": "",  # Invalid empty author
+        "prompt": "Test prompt",
+        "language": "pt",
+        "model": "gpt-4o",
+    }
+
+    response = client.post("/simulate-message", json=invalid_data)
+    assert response.status_code == 422
+    assert "author" in response.text  # Check validation error mentions author field
+
+
+def test_simulate_message_model_selection(sample_simulation_data):
+    with patch("app.api.routes.simulate_author_message") as mock_simulate:
+        mock_simulate.return_value = "Simulated string response message."
+
+        sample_simulation_data["model"] = "gpt-4o-mini"
+        client.post("/simulate-message", json=sample_simulation_data)
+
+        mock_simulate.assert_called_once_with(ANY, ANY, ANY, ANY, model="gpt-4o-mini")

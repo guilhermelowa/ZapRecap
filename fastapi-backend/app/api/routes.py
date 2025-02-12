@@ -154,9 +154,14 @@ async def get_conversation_themes(
 async def simulate_message(request: SimulationRequest):
     logger.info(f"Message simulation endpoint hit using model {request.model}")
     try:
+        # Ensure conversation messages are proper Message objects.
+        conversation = [
+            msg if isinstance(msg, Message) else Message.model_validate(msg)
+            for msg in request.conversation
+        ]
         simulated_message = simulate_author_message(
             request.author,
-            request.conversation,
+            conversation,
             request.prompt,
             request.language,
             model=request.model,

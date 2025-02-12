@@ -101,7 +101,8 @@
     "selectParticipant": "Selecionar Participante",
     "generatedMessage": "Mensagem Gerada",
     "simulationResult": "Resultado da Simulação",
-    "promptPlaceholder": "Digite sua mensagem para ser respondida pelo participante aqui."
+    "promptPlaceholder": "Digite sua mensagem para ser respondida pelo participante aqui.",
+    "generating": "Gerando..."
   },
   "weekdays": {
     "0": "Domingo",
@@ -162,11 +163,11 @@
   },
   "suggestions": {
     "title": "Sugira Novos Recursos de Análise",
-
     "placeholder": "Que outras análises você gostaria de ver? Compartilhe suas ideias!",
     "submit": "Enviar Sugestão",
     "thankYou": "Obrigado pela sua sugestão!",
-    "error": "Falha ao enviar sugestão. Por favor, tente novamente."
+    "error": "Falha ao enviar sugestão. Por favor, tente novamente.",
+    "submitting": "Enviando..."
   },
   "common": {
     "submitting": "Enviando..."

@@ -87,7 +87,8 @@
     "selectParticipant": "Select Participant",
     "generatedMessage": "Generated Message",
     "simulationResult": "Simulation Result",
-    "promptPlaceholder": "Enter your message to be answered by the participant here."
+    "promptPlaceholder": "Enter your message to be answered by the participant here.",
+    "generating": "Generating..."
   },
   "weekdays": {
     "0": "Sunday",
@@ -165,7 +166,8 @@
     "placeholder": "What other analysis would you like to see? Share your ideas!",
     "submit": "Submit Suggestion",
     "thankYou": "Thank you for your suggestion!",
-    "error": "Failed to submit suggestion. Please try again."
+    "error": "Failed to submit suggestion. Please try again.",
+    "submitting": "Submitting..."
   },
   "common": {
     "submitting": "Submitting..."

@@ -74,3 +74,22 @@ def test_parse_themes_response_english():
     assert "Games and entertainment" in result
     assert "maic willians: going to rehearsal now" in result["Daily activities and task planning"]
     assert "guilherme: I played the first one today" in result["Games and entertainment"]
+
+
+def test_parse_themes_response_portuguese_exemplo():
+    example_response = {
+        "temas": [
+            {"tema": "Eventos e Shows", "exemplo": "josé edson: depois do show vou de japa"},
+            {
+                "tema": "Trabalho e Carreira",
+                "exemplo": "guilherme: po 2k pra trabalhar 40h programando é taca fjkfkfkddk",
+            },
+        ]
+    }
+
+    result = parse_themes_response(example_response)
+    assert len(result) == 2
+    assert "Eventos e Shows" in result
+    assert "Trabalho e Carreira" in result
+    assert "josé edson" in result["Eventos e Shows"]
+    assert "guilherme" in result["Trabalho e Carreira"]

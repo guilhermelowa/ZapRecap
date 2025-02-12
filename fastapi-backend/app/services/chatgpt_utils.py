@@ -127,7 +127,10 @@ def parse_themes_response(response_json: dict) -> Dict[str, str]:
             # Both English and Portuguese keys
             # Both single and array formats
             examples = theme_item.get(
-                "examples", theme_item.get("exemplos", theme_item.get("example", []))
+                "examples",
+                theme_item.get(
+                    "exemplos", theme_item.get("example", theme_item.get("exemplo", []))
+                ),
             )
 
             # Convert single string to list for consistent handling

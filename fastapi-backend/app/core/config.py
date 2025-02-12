@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ADMIN_REGISTRATION_TOKEN: str
 
     # CORS Settings
     CORS_ORIGINS: str | List[str] = [

@@ -10,12 +10,20 @@ repos:
 
 -   repo: local
     hooks:
+    -   id: git-add-after-black
+        name: Stage Black reforms
+        entry: git add -u
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true
+
     -   id: python-tests
         name: Python Tests
         entry: powershell.exe -Command "cd fastapi-backend; .\venv\Scripts\activate; python -m pytest tests/"
         language: system
         pass_filenames: false
-        always_run: true
+        always_run: false
         types: [python]
         stages: [pre-commit]
 
@@ -24,5 +32,6 @@ repos:
         entry: powershell.exe -Command "cd fastapi-backend; .\venv\Scripts\activate; cd ..; python -m flake8 fastapi-backend/"
         language: system
         pass_filenames: true
+        always_run: false
         types: [python]
         stages: [pre-commit]

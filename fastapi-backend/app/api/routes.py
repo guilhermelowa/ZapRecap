@@ -1,7 +1,11 @@
 from fastapi import APIRouter, HTTPException, Request, Depends, Security, Query
 from pydantic import BaseModel, Field
 from app.services.text_analyzer import calculate_all_metrics
-from app.services.chatgpt_utils import simulate_author_message, extract_themes
+from app.services.chatgpt_utils import (
+    simulate_author_message,
+    extract_themes,
+    parse_themes_response,
+)
 from app.models.data_formats import (
     Message,
     ConversationThemesResponse,
@@ -124,10 +128,18 @@ async def get_conversation_themes(
     try:
         logger.info(
             f"Conversation themes endpoint hit for \
-                    conversation: {request.conversation_id} \
-                    and model {request.model}"
+                conversation: {request.conversation_id} \
+                and model {request.model}"
         )
 
+        # Database connection test
+        try:
+            db.execute("SELECT 1")
+        except Exception as e:
+            logger.error(f"Database connection test failed: {str(e)}")
+            raise HTTPException(status_code=503, detail="Database service unavailable")
+
+        # Get conversation
         parsed_conv = (
             db.query(ParsedConversation)
             .filter(ParsedConversation.content_hash == request.conversation_id)
@@ -140,21 +152,29 @@ async def get_conversation_themes(
         conversation = [Message.model_validate(msg) for msg in json.loads(parsed_conv.conversation)]
         logger.info(f"Loaded conversation with {len(conversation)} messages")
 
-        # Pass the model to extract_themes
+        # Theme Extraction
         themes = extract_themes(conversation, model=request.model)
-        logger.info(f"Extracted themes using model {request.model}: {themes}")
+        logger.info(f"Extracted themes: {themes}")
 
         if not themes:
-            logger.warning("No themes were extracted")
+            logger.warning("No themes extracted from LLM")
+            raise HTTPException(status_code=422, detail="No themes extracted from LLM")
 
-        return ConversationThemesResponse(themes=themes)
-    except HTTPException as he:
-        # Re-raise HTTP exceptions with their original status code
-        logger.error(f"HTTP error in conversation themes: {str(he)}")
-        raise he
+        # Theme Parsing
+        parsed_themes = parse_themes_response(themes)
+        logger.info(f"Parsed themes: {parsed_themes}")
+
+        if not parsed_themes:
+            logger.warning(f"Parsing {themes} resulted in no themes")
+            raise HTTPException(status_code=422, detail="Unable to parse extracted themes")
+
+        return ConversationThemesResponse(themes=parsed_themes)
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error getting conversation themes: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Unexpected error in conversation themes: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/simulate-message", response_model=SimulatedMessageResponse)

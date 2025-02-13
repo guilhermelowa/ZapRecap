@@ -1,10 +1,11 @@
 from fastapi.testclient import TestClient
 from app.main import app
 import pytest
-from unittest.mock import patch, ANY
+from unittest.mock import patch, ANY, MagicMock
 from typing import List
 from pydantic import BaseModel
 from app.models.data_formats import Message
+import psycopg2
 
 client = TestClient(app)
 
@@ -41,13 +42,96 @@ def test_analyze_endpoint_malformed_chat():
 
 
 def test_conversation_themes_endpoint():
-    with patch("app.services.chatgpt_utils.extract_themes") as mock_extract:
-        mock_extract.return_value = {"Theme 1": "Example 1"}
+    # Test database connection error
+    with patch("app.database.SessionLocal") as mock_session:
+        mock_db = MagicMock()
+        mock_db.execute.side_effect = psycopg2.OperationalError(
+            "SSL error: decryption failed or bad record mac"
+        )
+        mock_session.return_value = mock_db
 
         response = client.post(
-            "/conversation-themes", json={"conversation_id": "test_hash", "model": "gpt-3.5-turbo"}
+            "/conversation-themes", json={"conversation_id": "test_hash", "model": "gpt-4o"}
         )
-        assert response.status_code == 404  # Since we don't have the conversation in DB
+
+        assert response.status_code == 503
+        assert "Database service unavailable" in response.json()["detail"]
+
+    # Test conversation not found
+    with patch("app.database.SessionLocal") as mock_session:
+        mock_db = MagicMock()
+        mock_db.execute.return_value = True
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+        mock_session.return_value = mock_db
+
+        response = client.post(
+            "/conversation-themes", json={"conversation_id": "test_hash", "model": "gpt-4o"}
+        )
+
+        assert response.status_code == 404
+        assert "Conversation not found" in response.json()["detail"]
+
+    # Test empty themes from OpenAI
+    with patch("app.database.SessionLocal") as mock_session, patch(
+        "app.api.routes.extract_themes"
+    ) as mock_extract:
+        mock_db = MagicMock()
+        mock_db.execute.return_value = True
+        mock_conv = MagicMock()
+        mock_conv.conversation = "[]"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_conv
+        mock_session.return_value = mock_db
+        mock_extract.return_value = {}  # Empty themes from OpenAI
+
+        response = client.post(
+            "/conversation-themes", json={"conversation_id": "test_hash", "model": "gpt-4o"}
+        )
+
+        assert response.status_code == 422
+        assert "No themes extracted from LLM" in response.json()["detail"]
+
+    # Test theme parsing error
+    with patch("app.database.SessionLocal") as mock_session, patch(
+        "app.api.routes.extract_themes"
+    ) as mock_extract, patch("app.api.routes.parse_themes_response") as mock_parse:
+        mock_db = MagicMock()
+        mock_db.execute.return_value = True
+        mock_conv = MagicMock()
+        mock_conv.conversation = "[]"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_conv
+        mock_session.return_value = mock_db
+        mock_extract.return_value = {"some": "themes"}  # Return some themes
+        mock_parse.return_value = {}  # But parsing fails
+
+        response = client.post(
+            "/conversation-themes", json={"conversation_id": "test_hash", "model": "gpt-4o"}
+        )
+
+        assert response.status_code == 422
+        assert "Unable to parse extracted themes" in response.json()["detail"]
+
+    # Test successful case
+    with patch("app.database.SessionLocal") as mock_session, patch(
+        "app.api.routes.extract_themes"
+    ) as mock_extract, patch("app.api.routes.parse_themes_response") as mock_parse:
+        mock_db = MagicMock()
+        mock_db.execute.return_value = True
+        mock_conv = MagicMock()
+        mock_conv.conversation = "[]"
+        mock_db.query.return_value.filter.return_value.first.return_value = mock_conv
+        mock_session.return_value = mock_db
+
+        themes = {"Theme 1": "Example 1"}
+        mock_extract.return_value = themes
+        mock_parse.return_value = themes
+
+        response = client.post(
+            "/conversation-themes", json={"conversation_id": "test_hash", "model": "gpt-4o"}
+        )
+
+        assert response.status_code == 200
+        assert "themes" in response.json()
+        assert response.json()["themes"] == {"Theme 1": "Example 1"}
 
 
 def test_root_endpoint():

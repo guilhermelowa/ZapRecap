@@ -43,16 +43,22 @@ if POSTGRES_URL:
 
 SQLALCHEMY_DATABASE_URL = POSTGRES_URL or "sqlite:///./sql_app.db"
 
-# Remove check_same_thread for PostgreSQL
-connect_args = {"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
+# SSL configuration
+connect_args = {"sslmode": "require", "connect_timeout": 30}
+
+# Create engine with SSL config
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args=connect_args,
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10,
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Add more verbose error handling
 try:
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, connect_args={"sslmode": "require", "connect_timeout": 30}
-    )
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
     # Create tables
     Base.metadata.create_all(bind=engine)
 except Exception as e:

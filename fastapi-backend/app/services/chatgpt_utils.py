@@ -181,11 +181,10 @@ def extract_themes(conversation: List[Message], model: str = "gpt-3.5-turbo") ->
         response_json = response.choices[0].message.content
         logger.info(f"Extract themes Response: {response_json}")
 
-        themes_with_examples = parse_themes_response(json.loads(response_json))
+        return json.loads(response_json)
 
-        return themes_with_examples
     except Exception as e:
-        logger.error(f"Error in extract_themes: {str(e)}")
+        logger.error(f"Error extracting themes from OpenAI: {str(e)}")
         return {}
 
 

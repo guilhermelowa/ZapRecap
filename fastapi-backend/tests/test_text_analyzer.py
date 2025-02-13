@@ -99,12 +99,12 @@ def test_extract_themes_portuguese(sample_conversation, mock_openai_response_pt)
 
         # Verify results
         assert isinstance(result, dict)
-        assert "Planejamento de encontros para assistir série juntos:" in result
+        assert "themes" in result
+        assert len(result["themes"]) == 3
         assert (
-            result["Planejamento de encontros para assistir série juntos:"]
-            == "quer assistir disclosure beibe?"
+            result["themes"][0]["theme"] == "Planejamento de encontros para assistir série juntos:"
         )
-        assert len(result) == 3
+        assert result["themes"][0]["example"] == "quer assistir disclosure beibe?"
 
 
 def test_extract_themes_english(sample_conversation, mock_openai_response_en):
@@ -122,9 +122,10 @@ def test_extract_themes_english(sample_conversation, mock_openai_response_en):
 
         # Verify results
         assert isinstance(result, dict)
-        assert "Planning movie nights together:" in result
-        assert result["Planning movie nights together:"] == "want to watch that new movie?"
-        assert len(result) == 3
+        assert "themes" in result
+        assert len(result["themes"]) == 3
+        assert result["themes"][0]["theme"] == "Planning movie nights together:"
+        assert result["themes"][0]["example"] == "want to watch that new movie?"
 
 
 def test_extract_themes_error_handling(sample_conversation):
@@ -139,7 +140,7 @@ def test_extract_themes_error_handling(sample_conversation):
 
         # Verify error handling
         assert isinstance(result, dict)
-        assert len(result) == 0
+        assert result == {}
 
 
 def test_extract_themes_empty_response(sample_conversation):
@@ -156,7 +157,7 @@ def test_extract_themes_empty_response(sample_conversation):
 
         # Verify handling of empty response
         assert isinstance(result, dict)
-        assert len(result) == 0
+        assert result == {}
 
 
 def test_extract_themes_malformed_response(sample_conversation):
@@ -177,7 +178,7 @@ def test_extract_themes_malformed_response(sample_conversation):
 
         # Verify handling of malformed response
         assert isinstance(result, dict)
-        assert len(result) == 0  # Should handle malformed response gracefully
+        assert result == {}  # Should handle malformed response gracefully
 
 
 def test_prompt_token_limit():

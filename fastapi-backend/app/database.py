@@ -17,6 +17,14 @@ if POSTGRES_URL:
     # Parse the URL to handle any special characters
     parsed_url = urllib.parse.urlparse(POSTGRES_URL)
 
+    # Add sslmode=require if not present
+    query_params = urllib.parse.parse_qs(parsed_url.query)
+    if "sslmode" not in query_params:
+        query_params["sslmode"] = ["require"]
+
+    # Reconstruct the URL with SSL parameters
+    new_query = urllib.parse.urlencode(query_params, doseq=True)
+
     # Reconstruct the URL, ensuring proper encoding
     POSTGRES_URL = urllib.parse.urlunparse(
         (
@@ -24,7 +32,7 @@ if POSTGRES_URL:
             parsed_url.netloc,
             parsed_url.path,
             parsed_url.params,
-            parsed_url.query,
+            new_query,
             parsed_url.fragment,
         )
     )

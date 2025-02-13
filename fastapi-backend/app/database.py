@@ -48,7 +48,9 @@ connect_args = {"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswit
 
 # Add more verbose error handling
 try:
-    engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"sslmode": "require", "connect_timeout": 30}
+    )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     # Create tables
@@ -64,3 +66,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def get_database_url():
+    url = os.getenv("DATABASE_URL")
+    if url and url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    return url

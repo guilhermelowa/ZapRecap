@@ -14,6 +14,15 @@ class Suggestion(Base):
     timestamp = Column(DateTime, default=datetime.now())
     status = Column(String, default="pending")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "conversation_id": self.conversation_id,
+            "suggestion": self.suggestion,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "status": self.status,
+        }
+
 
 class ParsedConversation(Base):
     __tablename__ = "parsed_conversations"

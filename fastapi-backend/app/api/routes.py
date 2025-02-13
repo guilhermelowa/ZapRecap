@@ -27,7 +27,6 @@ from ..auth.security import verify_token, verify_password, create_access_token
 from ..auth.models import Admin
 import json
 from app.services.parsing_utils import get_or_create_parsed_conversation
-from app.auth.security import get_password_hash
 
 # Load environment variables from .env file in development
 if os.getenv("ENVIRONMENT") != "production":
@@ -290,7 +289,7 @@ def list_suggestions(
             query = query.filter(Suggestion.status == status)
 
         if days:
-            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            cutoff_date = datetime.now() - timedelta(days=days)
             query = query.filter(Suggestion.timestamp >= cutoff_date)
 
         suggestions = query.all()
@@ -336,40 +335,3 @@ async def login(login_data: AdminLogin, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error during login: {str(e)}")
         raise HTTPException(status_code=500, detail="Login process failed")
-
-
-@router.post("/admin/register")
-async def register_admin(registration_data: AdminRegister, db: Session = Depends(get_db)):
-    try:
-        # Verify registration token
-        if registration_data.registration_token != settings.ADMIN_REGISTRATION_TOKEN:
-            raise HTTPException(status_code=401, detail="Invalid registration token")
-
-        # Check if username already exists
-        existing_admin = (
-            db.query(Admin).filter(Admin.username == registration_data.username).first()
-        )
-        if existing_admin:
-            raise HTTPException(status_code=400, detail="Username already registered")
-
-        # Create new admin with hashed password
-        hashed_password = get_password_hash(registration_data.password)
-        new_admin = Admin(
-            username=registration_data.username, hashed_password=hashed_password, is_active=True
-        )
-
-        db.add(new_admin)
-        db.commit()
-        db.refresh(new_admin)
-
-        # Create and return access token
-        access_token = create_access_token(
-            data={"sub": new_admin.username},
-            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error during admin registration: {str(e)}")
-        raise HTTPException(status_code=500, detail="Registration process failed")

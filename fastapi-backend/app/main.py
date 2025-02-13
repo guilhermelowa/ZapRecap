@@ -42,6 +42,18 @@ if not os.path.exists(static_directory):
 # Mount the static files directory
 app.mount("/static", StaticFiles(directory=static_directory), name="static")
 
+
+# Custom middleware to set correct MIME types
+@app.middleware("http")
+async def add_content_type_headers(request, call_next):
+    response = await call_next(request)
+    if request.url.path.endswith(".js"):
+        response.headers["Content-Type"] = "application/javascript"
+    elif request.url.path.endswith(".css"):
+        response.headers["Content-Type"] = "text/css"
+    return response
+
+
 # Log startup
 logger.info("Starting FastAPI application...")
 

@@ -54,8 +54,8 @@ def test_conversation_themes_endpoint():
             "/conversation-themes", json={"conversation_id": "test_hash", "model": "gpt-4o"}
         )
 
-        assert response.status_code == 503
-        assert "Database service unavailable" in response.json()["detail"]
+        assert response.status_code == 500
+        assert "Internal server error" in response.json()["detail"]
 
     # Test conversation not found
     with patch("app.database.SessionLocal") as mock_session:

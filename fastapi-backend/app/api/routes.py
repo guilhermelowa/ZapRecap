@@ -132,19 +132,15 @@ async def get_conversation_themes(
                 and model {request.model}"
         )
 
-        # Database connection test
         try:
-            db.execute("SELECT 1")
+            parsed_conv = (
+                db.query(ParsedConversation)
+                .filter(ParsedConversation.content_hash == request.conversation_id)
+                .first()
+            )
         except Exception as e:
-            logger.error(f"Database connection test failed: {str(e)}")
+            logger.error(f"Database connection error: {str(e)}")
             raise HTTPException(status_code=503, detail="Database service unavailable")
-
-        # Get conversation
-        parsed_conv = (
-            db.query(ParsedConversation)
-            .filter(ParsedConversation.content_hash == request.conversation_id)
-            .first()
-        )
 
         if not parsed_conv:
             raise HTTPException(status_code=404, detail="Conversation not found")

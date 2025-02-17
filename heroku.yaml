@@ -1,0 +1,8 @@
+build:
+  config:
+    ENVIRONMENT: production
+  docker:
+    web: Dockerfile
+
+run:
+  web: gunicorn app.main:app -c gunicorn_config.py

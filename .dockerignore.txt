@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Virtual environments
+**/venv
+**/.env
+**/*.env
+
+# Dependency directories
+**/node_modules
+**/dist
+**/build
+
+# Python cache files
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Logs
+**/*.log
+
+# Editor directories
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Test files
+**/tests
+**/test
+
+# Backup files
+**/*.bak

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Depends, Security, Query
+from fastapi import APIRouter, HTTPException, Depends, Security, Query, File, UploadFile
 from pydantic import BaseModel, Field
 from app.services.text_analyzer import calculate_all_metrics
 from app.services.chatgpt_utils import (
@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 from ..auth.security import verify_token, verify_password, create_access_token
 from ..auth.models import Admin
 import json
-from app.services.parsing_utils import get_or_create_parsed_conversation
+from app.services.parsing_utils import get_or_create_parsed_conversation, extract_file_content
 
 # Load environment variables from .env file in development
 if os.getenv("ENVIRONMENT") != "production":
@@ -104,20 +104,35 @@ def message_to_dict(msg: Message) -> dict:
 
 
 @router.post("/analyze")
-async def analyze(request: Request, file: FileRequest, db: Session = Depends(get_db)):
-    logger.info(f"Analyze endpoint hit with content length: {len(file.content)}")
+async def analyze(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    logger.info(f"Analyze endpoint hit with file: {file.filename}")
+
     try:
-        (
-            dates,
-            author_and_messages,
-            conversation,
-            content_hash,
-        ) = get_or_create_parsed_conversation(file.content, db)
-        result = calculate_all_metrics(dates, author_and_messages, conversation, content_hash)
-        return result
+        # Extract and validate file content
+        file_content = await extract_file_content(file)
+        logger.info(f"Analyze endpoint processing content length: {len(file_content)}")
+
+        try:
+            (
+                dates,
+                author_and_messages,
+                conversation,
+                content_hash,
+            ) = get_or_create_parsed_conversation(file_content, db)
+
+            result = calculate_all_metrics(dates, author_and_messages, conversation, content_hash)
+            return result
+        except (ValueError, IndexError, AttributeError) as e:
+            logger.error(f"Error parsing chat content: {str(e)}")
+            raise HTTPException(
+                status_code=400, detail="Error analyzing conversation: Invalid WhatsApp chat format"
+            )
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error during analysis: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error analyzing conversation")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/conversation-themes", response_model=ConversationThemesResponse)

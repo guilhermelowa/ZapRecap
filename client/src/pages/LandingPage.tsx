@@ -16,8 +16,7 @@ const LandingPage: FC = () => {
             <li>Select "Export chat"</li>
             <li>Choose "Without Media" option</li>
             <li>Save the .zip file to your device</li>
-            <li>Unzip the file to extract the .txt conversation</li>
-            <li>Upload the .txt file using the upload button below</li>
+            <li>You can upload the .zip file directly or the txt file inside</li>
           </ul>
         </section>
 

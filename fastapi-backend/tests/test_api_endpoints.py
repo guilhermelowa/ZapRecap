@@ -6,6 +6,8 @@ from typing import List
 from pydantic import BaseModel
 from app.models.data_formats import Message
 import psycopg2
+import io
+import zipfile
 
 client = TestClient(app)
 
@@ -19,25 +21,31 @@ def sample_chat_content():
 
 
 def test_analyze_endpoint_success(sample_chat_content):
-    response = client.post("/analyze", json={"content": sample_chat_content})
+    # Create a text file-like object
+    file_content = sample_chat_content.encode()
+    response = client.post("/analyze", files={"file": ("chat.txt", file_content, "text/plain")})
     assert response.status_code == 200
     assert "conversation_stats" in response.json()
     assert "heatmap_data" in response.json()
 
 
 def test_analyze_endpoint_empty_content():
-    response = client.post("/analyze", json={"content": ""})
+    response = client.post("/analyze", files={"file": ("chat.txt", b"", "text/plain")})
     assert response.status_code == 422  # Validation error
 
 
 def test_analyze_endpoint_invalid_json():
-    response = client.post("/analyze", json={"wrong_field": "some content"})
+    # Test with missing file
+    response = client.post("/analyze")
     assert response.status_code == 422
 
 
 def test_analyze_endpoint_malformed_chat():
-    response = client.post("/analyze", json={"content": "This is not a WhatsApp chat format"})
-    assert response.status_code == 500
+    malformed_content = "This is not a WhatsApp chat format".encode()
+    response = client.post(
+        "/analyze", files={"file": ("chat.txt", malformed_content, "text/plain")}
+    )
+    assert response.status_code == 400
     assert "Error analyzing conversation" in response.json()["detail"]
 
 
@@ -246,3 +254,58 @@ def test_create_suggestion_invalid_payload():
     invalid_payload = {"conversation_id": "conversation123"}
     response = client.post("/suggestions", json=invalid_payload)
     assert response.status_code == 422  # Expecting a validation error
+
+
+def test_analyze_endpoint_zip_file_success(sample_chat_content):
+    """
+    Test successful analysis of a txt file inside a zip archive
+    """
+    # Create a zip file with the sample chat content
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zf:
+        zf.writestr("chat.txt", sample_chat_content)
+    zip_buffer.seek(0)
+
+    # Send the zip file to the analyze endpoint
+    response = client.post(
+        "/analyze", files={"file": ("chat.zip", zip_buffer.getvalue(), "application/zip")}
+    )
+
+    assert response.status_code == 200
+    assert "conversation_stats" in response.json()
+    assert "heatmap_data" in response.json()
+
+
+def test_analyze_endpoint_zip_file_no_txt():
+    """
+    Test error handling when zip file contains no txt files
+    """
+    # Create a zip file without any txt files
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zf:
+        zf.writestr("random_file.csv", "some,data,here")
+    zip_buffer.seek(0)
+
+    # Send the zip file to the analyze endpoint
+    response = client.post(
+        "/analyze", files={"file": ("no_txt.zip", zip_buffer.getvalue(), "application/zip")}
+    )
+
+    assert response.status_code == 400
+    assert "No .txt file found in the zip archive" in response.json()["detail"]
+
+
+def test_analyze_endpoint_unsupported_file_type():
+    """
+    Test error handling for unsupported file types
+    """
+    # Create a dummy file with an unsupported extension
+    file_content = b"Some random content"
+
+    # Send an unsupported file type
+    response = client.post(
+        "/analyze", files={"file": ("document.pdf", file_content, "application/pdf")}
+    )
+
+    assert response.status_code == 400
+    assert "Unsupported file type" in response.json()["detail"]

@@ -8,6 +8,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.models.database_models import ParsedConversation
 import logging
+import zipfile
+import io
+from fastapi import UploadFile, HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -75,23 +78,26 @@ def parse_whatsapp_chat(chat_text):
     - dates: List of datetime objects
     - author_and_messages: Dictionary of messages by author
     - conversation: List of all messages
+
+    Raises:
+    - ValueError: If the chat text is invalid or no valid messages are found
     """
-    # Split raw text into lines without preprocessing
-    lines = chat_text.split("\n")
-
-    # Find the index of the first valid message
-    first_valid_index = _find_first_valid_message_index(lines)
-
-    # If no valid message found
-    if first_valid_index == -1:
-        logger.warning("No valid messages found in chat text")
-        return [], {}, []
-
     try:
+        # Split raw text into lines without preprocessing
+        lines = chat_text.split("\n")
+
+        # Find the index of the first valid message
+        try:
+            first_valid_index = _find_first_valid_message_index(lines)
+        except ValueError as e:
+            raise ValueError(f"Invalid WhatsApp chat format: {str(e)}")
+
         return _process_chat_lines_from_index(lines[first_valid_index:])
+    except (IndexError, AttributeError) as e:
+        raise ValueError(f"Invalid WhatsApp chat format: {str(e)}")
     except Exception as e:
         logger.error(f"Unexpected error in parse_whatsapp_chat: {e}")
-        return [], {}, []
+        raise ValueError(f"Error parsing WhatsApp chat: {str(e)}")
 
 
 def _find_first_valid_message_index(lines):
@@ -104,6 +110,9 @@ def _find_first_valid_message_index(lines):
     Returns:
         int: Index of first valid line, or -1 if no valid line found
     """
+    if not lines:
+        raise ValueError("No valid messages found in chat text")
+
     now = datetime.now()
     OLDEST_DATE = now - timedelta(days=365)
 
@@ -121,7 +130,7 @@ def _find_first_valid_message_index(lines):
             # Skip lines that can't be parsed
             continue
 
-    return -1  # No valid message found
+    raise ValueError("No valid WhatsApp chat messages found in the content")
 
 
 def _create_message(date, author, content):
@@ -152,6 +161,37 @@ def _update_conversation_data(conversation, author_and_messages, msg):
     store_message(author_and_messages, msg)
 
 
+def _handle_new_message_line(
+    line, current_date, current_author, current_message, dates, author_and_messages, conversation
+):
+    """
+    Handle processing of a new message line.
+
+    Args:
+        line (str): Current line being processed
+        current_date (datetime): Current message date
+        current_author (str): Current message author
+        current_message (str): Current message content
+        dates (list): List of dates
+        author_and_messages (dict): Messages by author
+        conversation (list): Overall conversation list
+
+    Returns:
+        tuple: Updated (current_date, current_author, current_message)
+    """
+    # Store previous message if exists
+    if current_author and current_author != "None" and current_message:
+        msg = _create_message(current_date, current_author, current_message)
+        _update_conversation_data(conversation, author_and_messages, msg)
+
+    # Parse new message
+    current_date, message = parse_line(line)
+    dates.append(current_date)
+    current_author, current_message = parse_message(message)
+
+    return current_date, current_author, current_message
+
+
 def _process_chat_lines_from_index(lines):
     """
     Process chat lines starting from a valid message.
@@ -161,7 +201,13 @@ def _process_chat_lines_from_index(lines):
 
     Returns:
         tuple: (dates, author_and_messages, conversation)
+
+    Raises:
+        ValueError: If the chat format is invalid or no valid messages are found
     """
+    if not lines:
+        raise ValueError("No valid WhatsApp chat messages found")
+
     dates = []
     author_and_messages = {}
     conversation = []
@@ -170,38 +216,41 @@ def _process_chat_lines_from_index(lines):
     current_author = None
     current_message = None
 
-    for line in lines:
-        line = line.strip()
-        if not line:  # Skip empty lines
-            continue
+    try:
+        for line in lines:
+            line = line.strip()
+            if not line:  # Skip empty lines
+                continue
 
-        try:
             # If it's a new message line
             if is_new_message(line):
-                # Store previous message if exists
-                if current_author and current_author != "None" and current_message:
-                    msg = _create_message(current_date, current_author, current_message)
-                    _update_conversation_data(conversation, author_and_messages, msg)
-
-                # Parse new message
-                current_date, message = parse_line(line)
-                dates.append(current_date)
-                current_author, current_message = parse_message(message)
+                current_date, current_author, current_message = _handle_new_message_line(
+                    line,
+                    current_date,
+                    current_author,
+                    current_message,
+                    dates,
+                    author_and_messages,
+                    conversation,
+                )
             else:
                 # Accumulate multi-line messages
+                if current_message is None:
+                    raise ValueError("Invalid chat format: message content without header")
                 current_message += " " + line
 
-        except ValueError:
-            # Log and skip unparseable lines
-            logger.warning(f"Skipping unparseable line: {line}")
-            continue
+        # Handle last message
+        if current_author and current_author != "None" and current_message:
+            final_msg = _create_message(current_date, current_author, current_message)
+            _update_conversation_data(conversation, author_and_messages, final_msg)
 
-    # Handle last message
-    if current_author and current_author != "None" and current_message:
-        final_msg = _create_message(current_date, current_author, current_message)
-        _update_conversation_data(conversation, author_and_messages, final_msg)
+        if not dates:
+            raise ValueError("No valid WhatsApp chat messages found")
 
-    return dates, author_and_messages, conversation
+        return dates, author_and_messages, conversation
+
+    except (IndexError, AttributeError) as e:
+        raise ValueError(f"Invalid WhatsApp chat format: {str(e)}")
 
 
 def get_or_create_parsed_conversation(content: str, db: Session) -> tuple[list, dict, list, str]:
@@ -315,3 +364,59 @@ def _deserialize_parsed_conversation(parsed_conv):
 
 def message_to_dict(msg: Message) -> dict:
     return {"date": msg.date.isoformat(), "author": msg.author, "content": msg.content}
+
+
+def extract_txt_from_zip(zip_content: bytes) -> str:
+    """
+    Extract the first .txt file from a zip file.
+
+    Args:
+        zip_content (bytes): Zip file content
+
+    Returns:
+        str: Content of the first .txt file found
+    """
+    with zipfile.ZipFile(io.BytesIO(zip_content), "r") as zip_ref:
+        # Find the first .txt file
+        txt_files = [f for f in zip_ref.namelist() if f.lower().endswith(".txt")]
+
+        if not txt_files:
+            raise ValueError("No .txt file found in the zip archive")
+
+        # Read the first .txt file
+        with zip_ref.open(txt_files[0]) as txt_file:
+            return txt_file.read().decode("utf-8", errors="replace")
+
+
+async def extract_file_content(file: UploadFile) -> str:
+    """
+    Extract and validate content from an uploaded file.
+
+    Args:
+        file (UploadFile): The uploaded file
+
+    Returns:
+        str: The extracted content
+
+    Raises:
+        HTTPException: If file type is unsupported or content is empty
+    """
+    content = await file.read()
+
+    if file.filename.lower().endswith(".txt"):
+        file_content = content.decode("utf-8", errors="replace")
+    elif file.filename.lower().endswith(".zip"):
+        try:
+            file_content = extract_txt_from_zip(content)
+        except ValueError as ve:
+            # Explicitly raise a 400 error for no .txt files in zip
+            raise HTTPException(status_code=400, detail=str(ve))
+    else:
+        raise HTTPException(
+            status_code=400, detail="Unsupported file type. Please upload a .txt or .zip file."
+        )
+
+    if not file_content.strip():
+        raise HTTPException(status_code=422, detail="File content cannot be empty")
+
+    return file_content

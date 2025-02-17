@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react';
 import apiClient from '../services/axiosConfig';
 import { ConversationStats as Stats, AnalysisResponse } from '../types/apiTypes';
-import ConversationThemes from './ConversationThemes';
-import AuthorSimulator from './AuthorSimulator';
 import { useTranslation } from 'react-i18next';
 import styles from '../styles/components/PremiumContent.module.css';
+
+const ConversationThemes = lazy(() => import('./ConversationThemes'));
+const AuthorSimulator = lazy(() => import('./AuthorSimulator'));
 
 interface PremiumContentProps {
     stats: Stats;
@@ -29,34 +30,7 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const [selectedModel, setSelectedModel] = useState<string>(AVAILABLE_MODELS[0].value);
     const [error, setError] = useState<string | null>(null);
 
-    const initializePayment = async () => {
-        try {
-            const { data } = await apiClient.post('/create-pix-payment', {
-                amount: PRICE,
-                description: 'WhatsApp Recap Premium Features'
-            });
-            setPixQRCode(`data:image/png;base64,${data.qr_code}`);
-            setPixCopyCola(data.copy_cola);
-            setPaymentId(data.payment_id);
-            checkPaymentStatus(String(data.payment_id));
-        } catch (error) {
-            let errorMessage = t('premium.genericError');
-            
-            if (error instanceof Error) {
-                if (error.message.includes('Failed to fetch')) {
-                    errorMessage = t('premium.connectionError');
-                } else if (error.message.includes('HTTP error!')) {
-                    errorMessage = t('premium.serverError');
-                }
-            }
-            
-            // Add error state to show to user
-            setError(errorMessage);
-            console.error('Payment initialization error:', error);
-        }
-    };
-
-    const checkPaymentStatus = async (id: string) => {
+    const checkPaymentStatus = useCallback(async (id: string) => {
         const checkStatus = async () => {
             try {
                 const { data } = await apiClient.get(`/check-payment-status/${id}`);
@@ -81,10 +55,36 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
             }
         }, 2000);
         return interval;
-    };
+    }, []);
 
     useEffect(() => {
         if (!hasInitialized.current) {
+            const initializePayment = async () => {
+                try {
+                    const { data } = await apiClient.post('/create-pix-payment', {
+                        amount: PRICE,
+                        description: 'WhatsApp Recap Premium Features'
+                    });
+                    setPixQRCode(`data:image/png;base64,${data.qr_code}`);
+                    setPixCopyCola(data.copy_cola);
+                    setPaymentId(data.payment_id);
+                    checkPaymentStatus(String(data.payment_id));
+                } catch (error) {
+                    let errorMessage = t('premium.genericError');
+                    
+                    if (error instanceof Error) {
+                        if (error.message.includes('Failed to fetch')) {
+                            errorMessage = t('premium.connectionError');
+                        } else if (error.message.includes('HTTP error!')) {
+                            errorMessage = t('premium.serverError');
+                        }
+                    }
+                    
+                    setError(errorMessage);
+                    console.error('Payment initialization error:', error);
+                }
+            };
+
             hasInitialized.current = true;
             initializePayment();
         }
@@ -93,17 +93,9 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
             if (paymentId) {
                 clearInterval(Number(paymentId));
             }
-            // Clear themes data when component unmounts
             setThemes(undefined);
         };
-    }, []);
-
-    const loadPremiumFeatures = async () => {
-        if (isPaid) {
-            const { ConversationThemes, AuthorSimulator } = await import('./PremiumContent');
-            // ... load components
-        }
-    };
+    }, [checkPaymentStatus, t, paymentId]);
 
     if (isPaid) {
         return (
@@ -126,16 +118,18 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
                         ))}
                     </select>
                 </div>
-                <ConversationThemes 
-                    themes={themes} 
-                    conversationId={metrics.conversation_id}
-                    selectedModel={selectedModel}
-                    onThemesGenerated={setThemes}
-                />
-                <AuthorSimulator 
-                    metrics={metrics} 
-                    selectedModel={selectedModel}
-                />
+                <Suspense fallback={<div>Loading...</div>}>
+                    <ConversationThemes 
+                        themes={themes} 
+                        conversationId={metrics.conversation_id}
+                        selectedModel={selectedModel}
+                        onThemesGenerated={setThemes}
+                    />
+                    <AuthorSimulator 
+                        metrics={metrics} 
+                        selectedModel={selectedModel}
+                    />
+                </Suspense>
             </div>
         );
     }
@@ -145,7 +139,6 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
             <h2>{t('premium.unlockFeatures')}</h2>
             <p>{t('premium.description')}</p>
             
-            {/* Add error display */}
             {error && (
                 <div className={styles['error-message']}>
                     {error}

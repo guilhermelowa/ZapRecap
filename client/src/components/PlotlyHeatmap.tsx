@@ -27,16 +27,19 @@ interface PlotlyHeatmapProps {
 
 const PlotlyHeatmap: React.FC<PlotlyHeatmapProps> = ({ heatmapData }) => {
     const { t } = useTranslation();
-    const plotRef = useRef<any>(null);
+    const plotRef = useRef<HTMLDivElement>(null);
 
     // Cleanup function to prevent memory leaks
     useEffect(() => {
+        const plotElement = plotRef.current;
+
+        // Return cleanup function
         return () => {
-            if (plotRef.current) {
-                Plotly.purge(plotRef.current);
+            if (plotElement) {
+                Plotly.purge(plotElement);
             }
         };
-    }, []);
+    }, []); // Empty dependency array ensures this runs only on unmount
 
     // Calculate the aspect ratio based on the data dimensions
     // 7 rows (days) and ~52 columns (weeks)

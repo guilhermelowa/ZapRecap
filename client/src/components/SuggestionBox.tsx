@@ -18,7 +18,7 @@ const SuggestionBox: React.FC<SuggestionBoxProps> = ({ conversationId }) => {
     setIsSubmitting(true);
     
     try {
-      const { data } = await apiClient.post(
+      const { _data } = await apiClient.post(
         '/suggestions',
         {
           suggestion,

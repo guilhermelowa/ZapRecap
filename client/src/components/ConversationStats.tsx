@@ -12,7 +12,6 @@ interface ConversationStatsProps {
 const ConversationStats: React.FC<ConversationStatsProps> = ({ stats }) => {
     const { t } = useTranslation();
     const weekdays = t('weekdays', { returnObjects: true }) as string[];
-    const months = t('months', { returnObjects: true }) as string[];
     const [showTooltip, setShowTooltip] = useState(false);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const questionMarkRef = useRef<HTMLSpanElement>(null);

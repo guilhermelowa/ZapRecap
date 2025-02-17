@@ -1,13 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import * as Sentry from "@sentry/react";
 import html2canvas from 'html2canvas';
 import { useTranslation } from 'react-i18next';
 import styles from '../styles/components/ReportButton.module.css';
 
+// Define a more specific interface for contextData
+interface ContextData {
+    userId?: string;
+    pageUrl?: string;
+    additionalInfo?: Record<string, string>;
+}
+
 interface ReportButtonProps {
     sectionId: string;
     sectionName: string;
-    contextData?: any;
+    contextData?: ContextData;
 }
 
 const ReportButton: React.FC<ReportButtonProps> = ({ sectionId, sectionName, contextData }) => {
@@ -54,7 +61,7 @@ const ReportButton: React.FC<ReportButtonProps> = ({ sectionId, sectionName, con
                 ref={buttonRef}
                 className={styles['report-button']}
                 onClick={captureAndReport}
-                onMouseEnter={(e) => {
+                onMouseEnter={(_e) => {
                     updateTooltipPosition();
                     setShowTooltip(true);
                 }}

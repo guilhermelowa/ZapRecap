@@ -12,7 +12,7 @@ interface PlotlyBarChartsProps {
 }
 
 const PlotlyBarCharts: React.FC<PlotlyBarChartsProps> = ({ metrics }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const capitalizeNames = (name: string): string => {
     return name

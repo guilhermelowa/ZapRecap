@@ -1,6 +1,7 @@
 import { FC, ChangeEvent, DragEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../services/axiosConfig'
+import axios from 'axios'
 
 const FileUpload: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,8 +15,8 @@ const FileUpload: FC = () => {
       setError('Please upload a valid file')
       return false
     }
-    if (!file.name.endsWith('.txt')) {
-      setError('Please upload a .txt file')
+    if (!file.name.endsWith('.txt') && !file.name.endsWith('.zip')) {
+      setError('Please upload a .txt or .zip file')
       return false
     }
     return true
@@ -48,12 +49,16 @@ const FileUpload: FC = () => {
     setIsLoading(true);
     const reader = new FileReader();
 
-    reader.onload = async (e) => {
-      const content = e.target?.result as string;
+    reader.onload = async (_e) => {
       
       try {
-        const response = await apiClient.post('/analyze', {
-          content: content
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        
+        const response = await apiClient.post('/analyze', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
         
         navigate('/results', { 
@@ -72,7 +77,13 @@ const FileUpload: FC = () => {
         setIsLoading(false);
       }
     };
-    reader.readAsText(selectedFile);
+    
+    // Only read text files as text, for zip files we'll send the file directly
+    if (selectedFile.name.endsWith('.txt')) {
+      reader.readAsText(selectedFile);
+    } else {
+      handleSubmit(); // Directly submit for zip files
+    }
   }
 
   return (
@@ -84,7 +95,7 @@ const FileUpload: FC = () => {
     >
       <input
         type="file"
-        accept=".txt"
+        accept=".txt,.zip"
         onChange={handleFileInput}
         id="file-input"
         className="hidden-input"
@@ -94,7 +105,7 @@ const FileUpload: FC = () => {
           <svg className="upload-icon" viewBox="0 0 24 24" width="48" height="48">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
           </svg>
-          <p>Drop your WhatsApp chat file here or click to browse</p>
+          <p>Drop your WhatsApp chat .txt or .zip file here or click to browse</p>
           {selectedFile && <p className="file-name">Selected: {selectedFile.name}</p>}
           {error && <p className="error-message">{error}</p>}
         </div>

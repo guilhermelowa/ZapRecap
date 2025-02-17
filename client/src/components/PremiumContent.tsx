@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '../services/axiosConfig';
 import { ConversationStats as Stats, AnalysisResponse } from '../types/apiTypes';
 import ConversationThemes from './ConversationThemes';
 import AuthorSimulator from './AuthorSimulator';
@@ -31,19 +31,10 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
 
     const initializePayment = async () => {
         try {
-            // Use Axios for API call with a relative URL
-            const { data } = await axios.post(
-                '/create-pix-payment',
-                {
-                    amount: PRICE,
-                    description: 'WhatsApp Recap Premium Features'
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const { data } = await apiClient.post('/create-pix-payment', {
+                amount: PRICE,
+                description: 'WhatsApp Recap Premium Features'
+            });
             setPixQRCode(`data:image/png;base64,${data.qr_code}`);
             setPixCopyCola(data.copy_cola);
             setPaymentId(data.payment_id);
@@ -68,8 +59,7 @@ const PremiumContent: React.FC<PremiumContentProps> = ({ metrics }) => {
     const checkPaymentStatus = async (id: string) => {
         const checkStatus = async () => {
             try {
-                // Use Axios for API call with a relative URL
-                const { data } = await axios.get(`/check-payment-status/${id}`);
+                const { data } = await apiClient.get(`/check-payment-status/${id}`);
                 
                 if (data.status === 'approved') {
                     setIsPaid(true);

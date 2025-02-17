@@ -3,10 +3,15 @@ import react from '@vitejs/plugin-react';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 
 export default defineConfig({
-  base: '/static/',
+  // base: '/static/',
   plugins: [react()],
   define: {
     __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || 'development'),
+    __API_BASE_URL__: JSON.stringify(
+      process.env.VITE_NODE_ENV === 'production' 
+        ? 'https://zap-recap-ffe516b006a4.herokuapp.com/' 
+        : 'http://localhost:8000'
+    ),
     global: {},
     process: { env: {} }
   },

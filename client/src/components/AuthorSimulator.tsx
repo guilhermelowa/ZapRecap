@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../services/axiosConfig';
 import { AnalysisResponse, PremiumFeatures } from '../types/apiTypes';
 import { useTranslation } from 'react-i18next';
 import ReportButton from './ReportButton';
@@ -31,7 +31,7 @@ const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFea
             }
 
             // Use Axios for API call with a relative URL
-            const { data } = await axios.post(
+            const { data } = await apiClient.post(
                 '/simulate-message',
                 {
                     conversation: metrics.author_messages[selectedAuthor],
@@ -39,11 +39,6 @@ const AuthorSimulator: React.FC<AuthorSimulatorProps> = ({ metrics, onPremiumFea
                     prompt: prompt,
                     language: 'pt',
                     model: selectedModel,
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                 }
             );
 

@@ -1,6 +1,6 @@
 import { FC, ChangeEvent, DragEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import apiClient from '../services/axiosConfig'
 
 const FileUpload: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -52,12 +52,8 @@ const FileUpload: FC = () => {
       const content = e.target?.result as string;
       
       try {
-        const response = await axios.post('/analyze', {
+        const response = await apiClient.post('/analyze', {
           content: content
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
         });
         
         navigate('/results', { 

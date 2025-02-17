@@ -17,10 +17,9 @@ class Settings(BaseSettings):
 
     # CORS Settings
     CORS_ORIGINS: str | List[str] = [
-        "http://localhost:5173",  # Vite's default development port
-        "http://localhost:3000",  # Alternative frontend port
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:8000",  # FastAPI server
+        "https://zap-recap-ffe516b006a4.herokuapp.com/",
     ]
 
     @property

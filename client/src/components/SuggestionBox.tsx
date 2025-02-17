@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../services/axiosConfig';
 import { useTranslation } from 'react-i18next';
 import styles from '../styles/components/SuggestionBox.module.css';
 
@@ -18,18 +18,12 @@ const SuggestionBox: React.FC<SuggestionBoxProps> = ({ conversationId }) => {
     setIsSubmitting(true);
     
     try {
-      // Use Axios for API call with a relative URL
-      const { data } = await axios.post(
+      const { data } = await apiClient.post(
         '/suggestions',
         {
           suggestion,
           conversationId: conversationId || null,
           timestamp: new Date().toISOString(),
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
         }
       );
 

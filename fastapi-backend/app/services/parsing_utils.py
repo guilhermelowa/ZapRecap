@@ -105,7 +105,7 @@ def parse_whatsapp_chat(chat_text):
 def get_or_create_parsed_conversation(content: str, db: Session) -> tuple[list, dict, list, str]:
     """
     Retrieves parsed conversation from DB or creates new one if not exists.
-    Returns (dates, author_and_messages, conversation)
+    Returns (dates, author_and_messages, conversation, content_hash)
     """
     content_hash = sha256(content.encode()).hexdigest()
 
@@ -117,10 +117,10 @@ def get_or_create_parsed_conversation(content: str, db: Session) -> tuple[list, 
         logger.info("Found existing conversation in database")
         dates = [datetime.fromisoformat(d) for d in json.loads(parsed_conv.dates)]
         author_and_messages = {
-            author: [Message(**msg) for msg in messages]
+            author: [Message.model_validate(msg) for msg in messages]
             for author, messages in json.loads(parsed_conv.author_and_messages).items()
         }
-        conversation = [Message(**msg) for msg in json.loads(parsed_conv.conversation)]
+        conversation = [Message.model_validate(msg) for msg in json.loads(parsed_conv.conversation)]
         return dates, author_and_messages, conversation, content_hash
 
     logger.info("Parsing new conversation")
@@ -153,10 +153,10 @@ def get_or_create_parsed_conversation(content: str, db: Session) -> tuple[list, 
         )
         dates = [datetime.fromisoformat(d) for d in json.loads(parsed_conv.dates)]
         author_and_messages = {
-            author: [Message(**msg) for msg in messages]
+            author: [Message.model_validate(msg) for msg in messages]
             for author, messages in json.loads(parsed_conv.author_and_messages).items()
         }
-        conversation = [Message(**msg) for msg in json.loads(parsed_conv.conversation)]
+        conversation = [Message.model_validate(msg) for msg in json.loads(parsed_conv.conversation)]
 
     return dates, author_and_messages, conversation, content_hash
 

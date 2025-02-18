@@ -35,3 +35,12 @@ repos:
         always_run: false
         types: [python]
         stages: [pre-commit]
+
+    -   id: frontend-lint
+        name: Frontend Lint
+        entry: powershell.exe -Command "cd client; npm run lint"
+        language: system
+        pass_filenames: false
+        always_run: false
+        types: [file]
+        stages: [pre-commit]

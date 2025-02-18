@@ -1,3 +1,5 @@
+.secrets*
+
 test/*.txt
 
 # Frontend (Node.js, JS, TS) ignores

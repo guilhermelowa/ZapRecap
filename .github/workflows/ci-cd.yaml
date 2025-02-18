@@ -7,39 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  backend-tests:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: fastapi-backend
-
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: Create virtual environment
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pytest flake8
-    
-    - name: Run linting
-      run: |
-        flake8 .
-    
-    - name: Run backend tests
-      run: |
-        python -m pytest tests/
-
-  frontend-tests:
+  frontend:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -65,9 +33,61 @@ jobs:
       run: |
         cd client
         npm run build
+    
+    - name: Upload Frontend Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-dist
+        path: client/dist/
+        retention-days: 1
+
+  backend-tests:
+    needs: [frontend]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fastapi-backend
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download Frontend Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-dist
+        path: static/
+
+    - name: Verify Frontend Artifacts
+      run: |
+        echo "Frontend artifacts in backend:"
+        test -d static && echo "Static folder exists" || echo "Static folder does not exist"
+        ls -la static/
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pytest flake8
+    
+    - name: Run linting
+      run: |
+        flake8 .
+    
+    - name: Run backend tests
+      run: |
+        python -m pytest tests/
 
   deploy:
-    needs: [backend-tests, frontend-tests]
+    needs: [backend-tests]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 

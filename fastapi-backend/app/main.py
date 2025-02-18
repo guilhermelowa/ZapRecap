@@ -7,7 +7,7 @@ from app.core.logging_config import configure_logging
 import logging
 from fastapi.staticfiles import StaticFiles
 import os
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, HTMLResponse
 
 # Configure logging before creating the FastAPI app
 configure_logging()
@@ -66,8 +66,49 @@ async def serve_index():
     """
     Serve the index.html from the production build of your React app.
     """
-    index_file_path = os.path.join(os.getcwd(), "static", "index.html")
-    return FileResponse(index_file_path)
+    # Try multiple potential paths for index.html
+    possible_paths = [
+        os.path.join(os.getcwd(), "static", "index.html"),
+        os.path.join(os.path.dirname(__file__), "..", "static", "index.html"),
+        os.path.join(os.path.dirname(__file__), "static", "index.html"),
+        os.path.join(os.getcwd(), "fastapi-backend", "static", "index.html"),
+    ]
+
+    logger.info(f"Searching for index.html in possible paths: {possible_paths}")
+
+    for index_file_path in possible_paths:
+        logger.info(f"Checking path: {index_file_path}")
+        if os.path.exists(index_file_path):
+            logger.info(f"Found index.html at: {index_file_path}")
+            return FileResponse(index_file_path)
+
+    # Log all files in potential directories
+    for directory in set(os.path.dirname(path) for path in possible_paths):
+        try:
+            if os.path.exists(directory):
+                logger.info(f"Files in {directory}: {os.listdir(directory)}")
+        except Exception as e:
+            logger.error(f"Error listing files in {directory}: {e}")
+
+    # If no index.html is found, create a basic fallback
+    logger.warning("No index.html found. Serving fallback content.")
+    fallback_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>ZapRecap</title>
+    </head>
+    <body>
+        <div id="root">Application not loaded. Please check your build.</div>
+        <p>Current working directory: {}</p>
+        <p>Script directory: {}</p>
+    </body>
+    </html>
+    """.format(
+        os.getcwd(), os.path.dirname(__file__)
+    )
+
+    return HTMLResponse(content=fallback_content)
 
 
 @app.get("/test")

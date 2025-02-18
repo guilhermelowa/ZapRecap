@@ -32,4 +32,4 @@ class ParsedConversation(Base):
     dates = Column(String)  # JSON string of dates
     author_and_messages = Column(String)  # JSON string of messages by author
     conversation = Column(String)  # JSON string of all messages
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=datetime.now)

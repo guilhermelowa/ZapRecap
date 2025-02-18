@@ -9,61 +9,82 @@ import urllib.parse
 # Load environment variables
 load_dotenv()
 
-# Get database URL from environment variable, fallback to SQLite for development
-POSTGRES_URL = os.getenv("DATABASE_URL")
+# Determine environment
+is_testing = os.getenv("TESTING", "False") == "True"
 
-# Ensure the URL is properly parsed and encoded
-if POSTGRES_URL:
-    # Parse the URL to handle any special characters
-    parsed_url = urllib.parse.urlparse(POSTGRES_URL)
 
-    # Add sslmode=require if not present
-    query_params = urllib.parse.parse_qs(parsed_url.query)
-    if "sslmode" not in query_params:
-        query_params["sslmode"] = ["require"]
+def get_database_url():
+    # Prioritize test database for testing environment
+    if is_testing:
+        return "sqlite:///./test.db"
 
-    # Reconstruct the URL with SSL parameters
-    new_query = urllib.parse.urlencode(query_params, doseq=True)
+    # Get database URL from environment variable
+    POSTGRES_URL = os.getenv("DATABASE_URL")
 
-    # Reconstruct the URL, ensuring proper encoding
-    POSTGRES_URL = urllib.parse.urlunparse(
-        (
-            parsed_url.scheme,
-            parsed_url.netloc,
-            parsed_url.path,
-            parsed_url.params,
-            new_query,
-            parsed_url.fragment,
-        )
-    )
+    if not POSTGRES_URL:
+        return "sqlite:///./sql_app.db"
 
-    # Ensure postgres:// prefix for SQLAlchemy
+    # Ensure postgres:// is converted to postgresql://
     if POSTGRES_URL.startswith("postgres://"):
         POSTGRES_URL = POSTGRES_URL.replace("postgres://", "postgresql://", 1)
 
-SQLALCHEMY_DATABASE_URL = POSTGRES_URL or "sqlite:///./sql_app.db"
+    # Parse the URL
+    parsed_url = urllib.parse.urlparse(POSTGRES_URL)
 
-# SSL configuration
-connect_args = {"sslmode": "require", "connect_timeout": 30}
+    # Extract components
+    username = parsed_url.username
+    password = parsed_url.password
+    host = parsed_url.hostname
+    port = parsed_url.port or 5432
+    database = parsed_url.path.lstrip("/")
 
-# Create engine with SSL config
+    # Reconstruct URL with SSL parameters
+    query_params = urllib.parse.parse_qs(parsed_url.query)
+
+    # Add sslmode if not present
+    if "sslmode" not in query_params:
+        query_params["sslmode"] = ["require"]
+
+    # Encode password to handle special characters
+    if password:
+        password = urllib.parse.quote_plus(password)
+
+    # Construct the final URL
+    if password:
+        connection_string = f"postgresql://{username}:{password}@{host}:{port}/{database}"
+    else:
+        connection_string = f"postgresql://{username}@{host}:{port}/{database}"
+
+    # Append query parameters
+    query_string = urllib.parse.urlencode(query_params, doseq=True)
+    if query_string:
+        connection_string += f"?{query_string}"
+
+    return connection_string
+
+
+SQLALCHEMY_DATABASE_URL = get_database_url()
+
+# Simplified engine creation
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args=connect_args,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
+    connect_args={"check_same_thread": False} if is_testing else {},
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Add more verbose error handling
-try:
-    # Create tables
-    Base.metadata.create_all(bind=engine)
-except Exception as e:
-    print(f"Database connection error: {e}")
-    raise
+
+# Conditional table creation
+def create_tables():
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        raise
+
+
+# Create tables in both testing and non-testing modes
+create_tables()
 
 
 def get_db():
@@ -72,10 +93,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-def get_database_url():
-    url = os.getenv("DATABASE_URL")
-    if url and url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
-    return url

@@ -1,10 +1,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   // base: '/static/',
-  plugins: [react()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      include: ['buffer', 'stream']
+    })
+  ],
   define: {
     __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || 'development'),
     __API_BASE_URL__: JSON.stringify(
@@ -24,18 +29,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['react-plotly.js'],
-    include: ['react-plotly.js/factory'],
-    esbuildOptions: {
-      define: {
-        global: 'globalThis'
-      },
-      plugins: [
-        NodeGlobalsPolyfillPlugin({
-          buffer: true,
-          process: true,
-        })
-      ]
-    }
+    include: ['react-plotly.js/factory']
   },
   build: {
     commonjsOptions: {

@@ -11,7 +11,7 @@ from app.models.data_formats import (
     ConversationThemesResponse,
     SimulatedMessageResponse,
 )
-from typing import List
+from typing import List, Union, Optional
 import mercadopago
 import os
 from dotenv import load_dotenv
@@ -64,7 +64,7 @@ class PaymentStatus(BaseModel):
 
 class SuggestionCreate(BaseModel):
     suggestion: str
-    conversation_id: str | None = None
+    conversation_id: Union[str, None] = None
     timestamp: datetime
 
 
@@ -126,6 +126,11 @@ async def analyze(file: UploadFile = File(...), db: Session = Depends(get_db)):
             logger.error(f"Error parsing chat content: {str(e)}")
             raise HTTPException(
                 status_code=400, detail="Error analyzing conversation: Invalid WhatsApp chat format"
+            )
+        except Exception as db_e:
+            logger.error(f"Database error during analysis: {str(db_e)}")
+            raise HTTPException(
+                status_code=500, detail="Database error during conversation analysis"
             )
 
     except HTTPException:
@@ -290,8 +295,8 @@ def create_suggestion(suggestion: SuggestionCreate, db: Session = Depends(get_db
 
 @router.get("/admin/suggestions", response_model=List[dict])
 def list_suggestions(
-    status: str | None = None,
-    days: int | None = Query(default=None, ge=1, le=365),
+    status: Optional[str] = None,
+    days: Optional[int] = Query(default=None, ge=1, le=365),
     db: Session = Depends(get_db),
     username: str = Security(verify_token),
 ):

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from typing import Union, List
 from functools import lru_cache
 
 
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     ADMIN_REGISTRATION_TOKEN: str
 
     # CORS Settings
-    CORS_ORIGINS: str | List[str] = [
+    CORS_ORIGINS: Union[str, List[str]] = [
         "http://localhost:5173",  # Vite dev server
         "http://localhost:8000",  # FastAPI server
         "https://zap-recap-ffe516b006a4.herokuapp.com/",

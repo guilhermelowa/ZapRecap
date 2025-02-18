@@ -7,7 +7,8 @@ from app.core.logging_config import configure_logging
 import logging
 from fastapi.staticfiles import StaticFiles
 import os
-from starlette.responses import FileResponse, HTMLResponse
+from starlette.responses import FileResponse
+from fastapi.exceptions import HTTPException
 
 # Configure logging before creating the FastAPI app
 configure_logging()
@@ -34,13 +35,67 @@ app.add_middleware(
     max_age=3600,
 )
 
-# Optionally, use the current working directory to locate/create the static folder.
-static_directory = os.path.join(os.getcwd(), "static")
-if not os.path.exists(static_directory):
-    os.makedirs(static_directory)
+# Ensure static directory is correctly set
+static_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+os.makedirs(static_directory, exist_ok=True)
 
-# Mount the static files directory
+# Mount static files
 app.mount("/static", StaticFiles(directory=static_directory), name="static")
+
+
+# Add an explicit route for the root endpoint
+@app.get("/", response_class=FileResponse)
+async def root():
+    index_path = os.path.join(static_directory, "index.html")
+
+    # Log for debugging
+    logger.info(
+        "Attempting to serve index.html from: %s\n" "Static directory contents: %s",
+        index_path,
+        (
+            os.listdir(static_directory)
+            if os.path.exists(static_directory)
+            else "Directory does not exist"
+        ),
+    )
+
+    if os.path.exists(index_path):
+        return index_path
+    else:
+        logger.error("index.html not found in static directory")
+        raise HTTPException(status_code=404, detail="Index file not found")
+
+
+# Keep the catch-all route for client-side routing
+@app.get("/{path:path}")
+async def serve_static_files(path: str):
+    logger.info(f"Serving path: {path}")
+
+    # If path is empty or just '/', serve index.html
+    if not path or path == "/":
+        index_path = os.path.join(static_directory, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        else:
+            logger.error(f"Index file not found at {index_path}")
+            raise HTTPException(status_code=404, detail="Index file not found")
+
+    # Try to serve the specific file first
+    file_path = os.path.join(static_directory, path)
+
+    # If the specific file doesn't exist, serve index.html
+    if not os.path.exists(file_path):
+        index_path = os.path.join(static_directory, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+
+    # If it's a static file, serve it
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+
+    # If no file is found, return a 404
+    logger.error(f"File not found: {file_path}")
+    raise HTTPException(status_code=404, detail="File not found")
 
 
 # Custom middleware to set correct MIME types
@@ -59,56 +114,6 @@ logger.info("Starting FastAPI application...")
 
 # Define the path to your frontend production build.
 FRONTEND_DIST_PATH = os.path.join(os.path.dirname(__file__), "../static")
-
-
-@app.get("/")
-async def serve_index():
-    """
-    Serve the index.html from the production build of your React app.
-    """
-    # Try multiple potential paths for index.html
-    possible_paths = [
-        os.path.join(os.getcwd(), "static", "index.html"),
-        os.path.join(os.path.dirname(__file__), "..", "static", "index.html"),
-        os.path.join(os.path.dirname(__file__), "static", "index.html"),
-        os.path.join(os.getcwd(), "fastapi-backend", "static", "index.html"),
-    ]
-
-    logger.info(f"Searching for index.html in possible paths: {possible_paths}")
-
-    for index_file_path in possible_paths:
-        logger.info(f"Checking path: {index_file_path}")
-        if os.path.exists(index_file_path):
-            logger.info(f"Found index.html at: {index_file_path}")
-            return FileResponse(index_file_path)
-
-    # Log all files in potential directories
-    for directory in set(os.path.dirname(path) for path in possible_paths):
-        try:
-            if os.path.exists(directory):
-                logger.info(f"Files in {directory}: {os.listdir(directory)}")
-        except Exception as e:
-            logger.error(f"Error listing files in {directory}: {e}")
-
-    # If no index.html is found, create a basic fallback
-    logger.warning("No index.html found. Serving fallback content.")
-    fallback_content = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>ZapRecap</title>
-    </head>
-    <body>
-        <div id="root">Application not loaded. Please check your build.</div>
-        <p>Current working directory: {}</p>
-        <p>Script directory: {}</p>
-    </body>
-    </html>
-    """.format(
-        os.getcwd(), os.path.dirname(__file__)
-    )
-
-    return HTMLResponse(content=fallback_content)
 
 
 @app.get("/test")

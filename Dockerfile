@@ -42,8 +42,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend application
 COPY fastapi-backend/ .
 
-# Copy built frontend static files
-COPY --from=backend-builder /app/client/dist /app/fastapi-backend/static
+# Copy built frontend static files with correct directory structure
+COPY --from=backend-builder /app/client/dist /app/fastapi-backend/static/
+
+# Ensure correct permissions
+RUN mkdir -p /app/fastapi-backend/static
 
 # Expose port
 EXPOSE 8000

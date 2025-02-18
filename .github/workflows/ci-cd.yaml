@@ -55,13 +55,19 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: frontend-dist
-        path: static/
+        path: static
 
     - name: Verify Frontend Artifacts
       run: |
-        echo "Frontend artifacts in backend:"
-        test -d static && echo "Static folder exists" || echo "Static folder does not exist"
+        pwd
+        echo "Current directory contents:"
+        ls -la
+        echo "Static directory contents:"
+        mkdir -p static
         ls -la static/
+        echo "Frontend artifacts verification:"
+        test -d static && echo "Static folder exists" || echo "Static folder does not exist"
+        find . -name "*" | grep -i "static"
     
     - name: Set up Python
       uses: actions/setup-python@v4

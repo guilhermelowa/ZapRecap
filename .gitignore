@@ -37,7 +37,7 @@ fastapi-backend/.Python
 fastapi-backend/venv/
 fastapi-backend/ENV/
 fastapi-backend/env/
-fastapi-backend/.env
+fastapi-backend/.env*
 fastapi-backend/*.egg
 fastapi-backend/*.egg-info/
 fastapi-backend/dist/

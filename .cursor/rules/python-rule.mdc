@@ -1,0 +1,6 @@
+---
+description: Rules for Python
+globs: 
+---
+Max line length should be 100.
+Blank lines should contain no blank spaces or tabs.

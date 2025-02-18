@@ -64,10 +64,7 @@ jobs:
     - name: Build
       run: |
         cd client
-        npm ci
         npm run build
-        mkdir -p ../fastapi-backend/static
-        cp -r dist/* ../fastapi-backend/static/
 
   deploy:
     needs: [backend-tests, frontend-tests]
@@ -76,6 +73,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Install Heroku CLI
+      run: |
+        curl https://cli-assets.heroku.com/install.sh | sh
     
     - name: Deploy to Heroku
       env:

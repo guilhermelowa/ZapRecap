@@ -16,33 +16,34 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs
 
-# Copy entire project
-COPY . /app
-
-# Install frontend dependencies
+# Copy only necessary frontend files
+COPY client/package*.json /app/client/
 WORKDIR /app/client
 RUN npm install
 
-# Build frontend
+# Copy frontend source
+COPY client/ /app/client/
 RUN npm run build
 
-# Copy frontend build to backend static
-RUN mkdir -p /app/fastapi-backend/static && \
-    cp -r dist/* /app/fastapi-backend/static/
+# Copy backend files
+WORKDIR /app
+COPY fastapi-backend/requirements.txt /app/fastapi-backend/
+RUN pip install --no-cache-dir -r /app/fastapi-backend/requirements.txt
 
-# Backend final stage
+# Final stage
 FROM python:3.9-slim
 
-# Set working directory
 WORKDIR /app/fastapi-backend
 
-# Install backend dependencies
+# Copy backend requirements and install
 COPY fastapi-backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application and static files
+# Copy backend application
 COPY fastapi-backend/ .
-COPY --from=backend-builder /app/fastapi-backend/static ./static
+
+# Copy built frontend static files
+COPY --from=backend-builder /app/client/dist /app/fastapi-backend/static
 
 # Expose port
 EXPOSE 8000

@@ -47,42 +47,31 @@ const FileUpload: FC = () => {
       return;
     }
     setIsLoading(true);
-    const reader = new FileReader();
 
-    reader.onload = async (_e) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
       
-      try {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        
-        const response = await apiClient.post('/analyze', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        
-        navigate('/results', { 
-          state: {
-             result: response.data
-          } 
-        })
-      } catch (error) {
-        console.error('Error details:', error);
-        if (axios.isAxiosError(error)) {
-          console.error('Response:', error.response);
-          console.error('Request:', error.request);
+      const response = await apiClient.post('/analyze', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-        setError('Failed to analyze file. Please try again.');
-      } finally {
-        setIsLoading(false);
+      });
+      
+      navigate('/results', { 
+        state: {
+           result: response.data
+        } 
+      })
+    } catch (error) {
+      console.error('Error details:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Response:', error.response);
+        console.error('Request:', error.request);
       }
-    };
-    
-    // Only read text files as text, for zip files we'll send the file directly
-    if (selectedFile.name.endsWith('.txt')) {
-      reader.readAsText(selectedFile);
-    } else {
-      handleSubmit(); // Directly submit for zip files
+      setError('Failed to analyze file. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   }
 

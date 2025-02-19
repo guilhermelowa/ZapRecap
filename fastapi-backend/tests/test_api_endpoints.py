@@ -31,7 +31,7 @@ def test_analyze_endpoint_success(sample_chat_content):
 
 def test_analyze_endpoint_empty_content():
     response = client.post("/analyze", files={"file": ("chat.txt", b"", "text/plain")})
-    assert response.status_code == 422  # Validation error
+    assert response.status_code == 422
 
 
 def test_analyze_endpoint_invalid_json():
@@ -291,7 +291,7 @@ def test_analyze_endpoint_zip_file_no_txt():
         "/analyze", files={"file": ("no_txt.zip", zip_buffer.getvalue(), "application/zip")}
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 422
     assert "No .txt file found in the zip archive" in response.json()["detail"]
 
 

@@ -401,22 +401,35 @@ async def extract_file_content(file: UploadFile) -> str:
     Raises:
         HTTPException: If file type is unsupported or content is empty
     """
+    # Reset file pointer to beginning
+    await file.seek(0)
+
+    # Read file content
     content = await file.read()
 
-    if file.filename.lower().endswith(".txt"):
-        file_content = content.decode("utf-8", errors="replace")
-    elif file.filename.lower().endswith(".zip"):
-        try:
+    # Determine file type and extract content
+    try:
+        if file.filename.lower().endswith(".txt"):
+            file_content = content.decode("utf-8", errors="replace")
+        elif file.filename.lower().endswith(".zip"):
             file_content = extract_txt_from_zip(content)
-        except ValueError as ve:
-            # Explicitly raise a 400 error for no .txt files in zip
-            raise HTTPException(status_code=400, detail=str(ve))
-    else:
-        raise HTTPException(
-            status_code=400, detail="Unsupported file type. Please upload a .txt or .zip file."
-        )
+        else:
+            raise HTTPException(
+                status_code=400, detail="Unsupported file type. Please upload a .txt or .zip file."
+            )
 
-    if not file_content.strip():
-        raise HTTPException(status_code=422, detail="File content cannot be empty")
+        if not file_content.strip():
+            raise HTTPException(status_code=422, detail="File content cannot be empty")
 
-    return file_content
+        return file_content
+
+    except HTTPException:
+        raise
+    except ValueError as ve:
+        # Specific error for no .txt file in zip
+        if "No .txt file found in the zip archive" in str(ve):
+            raise HTTPException(status_code=422, detail="No .txt file found in the zip archive")
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(ve)}")
+    except Exception as e:
+        logger.error(f"Error extracting file content: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")

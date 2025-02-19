@@ -5,13 +5,8 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 export default defineConfig(({ command, mode }) => {
   console.log('Vite command:', command);
   console.log('Vite mode:', mode);
-  console.log('Environment variables:', {
-    MODE: import.meta.env.MODE,
-    PROD: import.meta.env.PROD,
-    DEV: import.meta.env.DEV
-  });
 
-  const apiBaseUrl = import.meta.env.MODE === 'production'
+  const apiBaseUrl = mode === 'production'
     ? 'https://zap-recap-ffe516b006a4.herokuapp.com/'
     : 'http://localhost:8000';
   

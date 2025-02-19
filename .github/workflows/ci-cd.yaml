@@ -55,19 +55,25 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: frontend-dist
-        path: static
+        path: ${{ github.workspace }}/fastapi-backend/static
 
     - name: Verify Frontend Artifacts
       run: |
         pwd
         echo "Current directory contents:"
         ls -la
+        echo "Previous directory contents:"
+        ls -la ..
+        echo "Previous twofold directory contents:"
+        ls -la ../..
         echo "Static directory contents:"
-        mkdir -p static
         ls -la static/
         echo "Frontend artifacts verification:"
         test -d static && echo "Static folder exists" || echo "Static folder does not exist"
         find . -name "*" | grep -i "static"
+        echo "Files in static:"
+        find static -type f
+        
     
     - name: Set up Python
       uses: actions/setup-python@v4

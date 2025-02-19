@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-const baseURL = __API_BASE_URL__;
+console.log('Build mode:', import.meta.env.MODE);
+console.log('Build prod:', import.meta.env.PROD);
+console.log('Build dev:', import.meta.env.DEV);
 
+const baseURL = __API_BASE_URL__;
 console.log('Selected baseURL:', baseURL);
 
 const apiClient = axios.create({

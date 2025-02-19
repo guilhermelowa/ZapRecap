@@ -20,6 +20,7 @@ class Settings(BaseSettings):
         "http://localhost:5173",  # Vite dev server
         "http://localhost:8000",  # FastAPI server
         "https://zap-recap-ffe516b006a4.herokuapp.com/",
+        "https://zap-recap-ffe516b006a4.herokuapp.com",  # Remove trailing slash
     ]
 
     @property

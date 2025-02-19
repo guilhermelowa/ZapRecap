@@ -52,6 +52,22 @@ export default defineConfig({
     hmr: {
       protocol: 'ws',
       host: 'localhost'
+    },
+    headers: {
+      'Content-Security-Policy': 
+        "connect-src 'self' " + 
+        "http://localhost:8000 " + 
+        "https://zap-recap-ffe516b006a4.herokuapp.com " + 
+        "ws://localhost:5173"
+    }
+  },
+  preview: {
+    headers: {
+      'Content-Security-Policy': 
+        "connect-src 'self' " + 
+        "http://localhost:8000 " + 
+        "https://zap-recap-ffe516b006a4.herokuapp.com " + 
+        "ws://localhost:5173"
     }
   },
   ssr: {

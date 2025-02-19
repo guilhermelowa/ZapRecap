@@ -11,7 +11,6 @@ export default defineConfig({
     })
   ],
   define: {
-    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || 'development'),
     __API_BASE_URL__: JSON.stringify(
       process.env.VITE_NODE_ENV === 'production' 
         ? 'https://zap-recap-ffe516b006a4.herokuapp.com/' 

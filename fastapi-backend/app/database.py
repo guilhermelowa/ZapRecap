@@ -24,12 +24,21 @@ def get_database_url():
     if not POSTGRES_URL:
         return "sqlite:///./sql_app.db"
 
-    # Ensure postgres:// is converted to postgresql://
+    # Heroku-specific SSL handling
     if POSTGRES_URL.startswith("postgres://"):
         POSTGRES_URL = POSTGRES_URL.replace("postgres://", "postgresql://", 1)
 
     # Parse the URL
     parsed_url = urllib.parse.urlparse(POSTGRES_URL)
+
+    # Heroku-specific SSL configuration
+    query_params = urllib.parse.parse_qs(parsed_url.query)
+
+    # Explicitly set Heroku's SSL requirements
+    query_params["sslmode"] = ["require"]
+    query_params["sslcert"] = [""]
+    query_params["sslkey"] = [""]
+    query_params["sslrootcert"] = [""]
 
     # Extract components
     username = parsed_url.username
@@ -37,13 +46,6 @@ def get_database_url():
     host = parsed_url.hostname
     port = parsed_url.port or 5432
     database = parsed_url.path.lstrip("/")
-
-    # Reconstruct URL with SSL parameters
-    query_params = urllib.parse.parse_qs(parsed_url.query)
-
-    # Add sslmode if not present
-    if "sslmode" not in query_params:
-        query_params["sslmode"] = ["require"]
 
     # Encode password to handle special characters
     if password:
